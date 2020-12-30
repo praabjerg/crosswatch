@@ -189,12 +189,12 @@ function setIconColor(tabId, color) {
   canvas.height = canvas.width = 128;
 
   const ctx = canvas.getContext("2d");
-  ctx.font = "bold 92px roboto";
+  ctx.font = "bold 75px roboto";
   ctx.textAlign = "center";
   ctx.fillStyle = color;
   roundRect(ctx, 0, 0, canvas.width, canvas.height, 20, true, false);
   ctx.fillStyle = 'white';
-  ctx.fillText("RT", canvas.width / 2, canvas.height / 2 + 32);
+  ctx.fillText("XW", canvas.width / 2, canvas.height / 2 + 32);
 
   const imageData = ctx.getImageData(0, 0, 128, 128);
   window.imageData = imageData;

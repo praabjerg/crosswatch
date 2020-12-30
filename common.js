@@ -7,8 +7,9 @@ const LIMIT_DELTA_TIME = 3; // In Seconds
 const googleGreen = "#009688";
 const googleAquaBlue = "#00BBD3";
 const crunchyrollOrange = "#F78C25";
+const wRed = "#F72445";
 const chineseSilver = "#CCC";
-const defaultcolorOptions = [googleGreen, googleAquaBlue, crunchyrollOrange];
+const defaultcolorOptions = [googleGreen, googleAquaBlue, crunchyrollOrange, wRed];
 
 const Actions = {
   PLAY: 'play',
@@ -74,7 +75,7 @@ function executeScript(tabId, obj) {
 
 function getExtensionColor() {
   return new Promise(callback => {
-    chrome.storage.sync.get({ extensionColor: crunchyrollOrange }, function (data) {
+    chrome.storage.sync.get({ extensionColor: wRed }, function (data) {
       callback(data.extensionColor);
     });
   });
