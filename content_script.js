@@ -1,8 +1,12 @@
+/* content_script.js manipulates the HTML5 video-player and captures actions related to it. */
+
 const ignoreNext = {};
 
 let player = null;
 let lastFrameProgress = null;
 
+/* Skip-button functionality. To be removed in favor of making the
+ * the code more generic across streaming services. */
 let beginIntro = null;
 let endIntro = null;
 let skipButton = null;
@@ -33,6 +37,8 @@ function getStates() {
   return { state, currentProgress, timeJump };
 }
 
+/* Skip-button functionality. To be removed in favor of making the
+ * the code more generic across streaming services. */
 function getSkipButtonState(currentProgress) {
   if (beginIntro === null) return skipButtonStates.HIDDEN;
 
@@ -49,6 +55,8 @@ function getSkipButtonState(currentProgress) {
   return skipButtonStates.HIDDEN;
 }
 
+/* Skip-button functionality. To be removed in favor of making the
+ * the code more generic across streaming services. */
 function setSkipButtonState(currentProgress) {
   let state = getSkipButtonState(currentProgress);
 
@@ -69,6 +77,8 @@ function setSkipButtonState(currentProgress) {
   }
 }
 
+/* Skip-button functionality. To be removed in favor of making the
+ * the code more generic across streaming services. */
 function createSkipButton() {
   const videoContainer = document.getElementById("vilosRoot");
 
@@ -99,6 +109,8 @@ function createSkipButton() {
   }
 }
 
+/* Handles local actions and sends messages to let background.js propagate
+ * actions to other users */
 const handleLocalAction = action => () => {
   if (ignoreNext[action] === true) {
     ignoreNext[action] = false;
@@ -121,6 +133,7 @@ const handleLocalAction = action => () => {
   }
 }
 
+/* Used by handleRemoteUpdate to trigger video player actions from other users. */
 function triggerAction(action, progress) {
   ignoreNext[action] = true;
 
@@ -148,6 +161,7 @@ function sendRoomConnectionMessage() {
   );
 }
 
+/* Used by handleBackgroundMessage to handle REMOTE_UPDATE */
 function handleRemoteUpdate({ roomState, roomProgress }) {
   log('Handling Remote Update', { roomState, roomProgress });
   const { state, currentProgress } = getStates();
@@ -167,12 +181,15 @@ function handleBackgroundMessage(args) {
   const { type } = args;
   switch (type) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
+      /* Handle connection to create a new room. */
       sendRoomConnectionMessage();
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
       break;
     case BackgroundMessageTypes.SKIP_MARKS:
+      /* Skip-button functionality. To be removed in favor of making the
+       * the code more generic across streaming services. */
       const { marks: { begin, end } } = args;
       beginIntro = begin;
       endIntro = end;
@@ -182,6 +199,15 @@ function handleBackgroundMessage(args) {
   }
 }
 
+/* Main function of content script. Checks for the appropriate <video>
+ * element on the page. "player0" is the id given to the <video> tag within
+ * the iframe of CrunchyRoll's vilos-player.
+ * An local action listener (handleLocalAction) is set up to listen for
+ * actions performed on the video by the local user, and will use the
+ * chrome.runtime.onMessage listener in background.js to propagate
+ * LOCAL_UPDATE actions to other users.
+ * The runtime.onMessage listener handleBackgroundMessage is used to handle
+ * messages from backround.js */
 function runContentScript() {
   player = document.getElementById("player0");
 
@@ -197,6 +223,7 @@ function runContentScript() {
   createSkipButton();
 
   chrome.runtime.onMessage.addListener(handleBackgroundMessage);
+  /* Send message to runtime.onMessage listener in backend.js to connect to room. */
   chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
 }
 

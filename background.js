@@ -1,16 +1,26 @@
 'use strict';
+/* background.js handles communication with the server application. */
 
+/* Identifies the Crunchyroll tab and keeps useful information under its tabId (socket, roomId) */
 const tabsInfo = {};
+
 const skipIntroSocket = io('https://rt-skip-intro.azurewebsites.net');
 const skipIntroPendingRequests = {};
 
 loadStyles();
 
+/* Searching through, I don't actually think this regex is used for anything.
+ * It may be safe to remove it. */
 const regex = /http.*:\/\/www\.crunchyroll.*\/[^\/]+\/episode.*/;
+
+/* RT Icon color management */
 chrome.tabs.onActivated.addListener(({ tabId }) => {
   getExtensionColor().then(color => setIconColor(tabId, color));
 });
 
+/* On installation, set rule for when to activate the extension popup (popup.html, popup.js)
+ * In this case, we have to be on www.crunchyroll.*, and the page has to contain a vilos-player
+ * in an iframe.*/
 chrome.runtime.onInstalled.addListener(function () {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
     chrome.declarativeContent.onPageChanged.addRules([{
@@ -23,10 +33,12 @@ chrome.runtime.onInstalled.addListener(function () {
   });
 });
 
+/* RT Icon color management */
 chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
   getExtensionColor().then(color => setIconColor(tabId, color));
 });
 
+/* Disconnect from server when closing tab */
 chrome.tabs.onRemoved.addListener(function (tabId) {
   disconnectWebsocket(tabId);
   delete tabsInfo[tabId];
@@ -44,6 +56,8 @@ async function handleWebpageConnection(tab, url) {
     sendConnectionRequestToWebpage(tab);
   }
 
+  /* Skip-button functionality. To be removed in favor of making the
+   * the code more generic across streaming services. */
   const skipIntro = await getIntroFeatureState();
   if (skipIntro) {
     log('Sending skip intro marks request.', { url });
@@ -52,6 +66,7 @@ async function handleWebpageConnection(tab, url) {
   }
 }
 
+/* Runs update() function from popup.js if Popup is active */
 function tryUpdatePopup() {
   try {
     updatePopup && updatePopup();
@@ -60,6 +75,9 @@ function tryUpdatePopup() {
   }
 }
 
+/* Disconnects from server
+ * Used by: chrome.tabs.onRemoved listener, sendConnectionRequestToWebpage function
+ */
 function disconnectWebsocket(tabId) {
   if (!tabsInfo[tabId]) {
     return;
@@ -75,6 +93,7 @@ function disconnectWebsocket(tabId) {
   tryUpdatePopup();
 }
 
+
 chrome.runtime.onMessage.addListener(
   function ({ state, currentProgress, type }, sender) {
     const tabId = sender.tab.id;
@@ -84,12 +103,18 @@ chrome.runtime.onMessage.addListener(
 
     log('Received webpage message', { type, state, currentProgress, url, sender });
     switch (type) {
+      /* Handles connection for existing room.
+       * Originates from runContentScript in content_script.js */
       case WebpageMessageTypes.CONNECTION:
         handleWebpageConnection(sender.tab, url)
         break;
+      /* Handles connection for a new room.
+       * Originates from createRoomButton.onclick in popup.js */
       case WebpageMessageTypes.ROOM_CONNECTION:
         connectWebsocket(tabId, currentProgress, state, urlRoomId);
         break;
+      /* Submits local video status/progress updates.
+       * Originates from handleLocalAction in content_script.js */
       case (WebpageMessageTypes.LOCAL_UPDATE):
         tabInfo.socket && tabInfo.socket.emit('update', state, currentProgress);
         break;
@@ -99,6 +124,8 @@ chrome.runtime.onMessage.addListener(
   }
 );
 
+/* Handle State/Progress update from server. Called from listeners set up in
+ * connectWebSocket. */
 function sendUpdateToWebpage(tabId, roomState, roomProgress) {
   log('Sending update to webpage', { tabId, roomState, roomProgress });
   const tabInfo = tabsInfo[tabId];
@@ -120,9 +147,18 @@ function sendConnectionRequestToWebpage(tab) {
 
   log('Sending connection request to webpage', { tab });
 
+  /* If no socket is established or no roomId is registered on the tab, we initiate
+   * a new socket connection. This message will be picked up by handleBackgroundMessage
+   * in content_script.js, and treated by sendRoomConnectionMessage, which forwards it
+   * again to the chrome.onMessage listener here in background.js.
+   * From there, it goes to connectWebsocket, which establishes the connection.
+   * This roundtrip happens to collect initial information about video status via
+   * getStates in content_script.js, and is activated on new room connections from
+   * createRoomButton.onclick in popup.js. */
   chrome.tabs.sendMessage(tab.id, { type: BackgroundMessageTypes.ROOM_CONNECTION });
 }
 
+/* Connect websocket to server. */
 function connectWebsocket(tabId, videoProgress, videoState, urlRoomId) {
   log('Connecting websocket', { tabId, videoProgress, videoState, urlRoomId });
   const tabInfo = tabsInfo[tabId];
@@ -131,6 +167,7 @@ function connectWebsocket(tabId, videoProgress, videoState, urlRoomId) {
 
   tabInfo.socket = io('https://roll-together.herokuapp.com/', { query });
 
+  /* Listen for roomId and initial State and Progress from server. */
   tabInfo.socket.on('join', (receivedRoomId, roomState, roomProgress) => {
     tabInfo.roomId = receivedRoomId;
     log('Sucessfully joined a room', { roomId: tabInfo.roomId, roomState, roomProgress });
@@ -139,12 +176,14 @@ function connectWebsocket(tabId, videoProgress, videoState, urlRoomId) {
     sendUpdateToWebpage(tabId, roomState, roomProgress);
   });
 
+  /* Listen for running updates of State and Progress from server. */
   tabInfo.socket.on('update', (id, roomState, roomProgress) => {
     log('Received update Message from ', id, { roomState, roomProgress });
     sendUpdateToWebpage(tabId, roomState, roomProgress);
   });
 }
 
+/* Sets "RT" icon color */
 function setIconColor(tabId, color) {
   const canvas = document.createElement('canvas');
   canvas.height = canvas.width = 128;

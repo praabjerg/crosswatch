@@ -47,6 +47,8 @@ window.addEventListener('beforeunload', () => {
   background.window.updatePopup = null;
 });
 
+/* Room creation is initiated here. createRoom is assigned the sendConnectionRequestToWebpage
+ * function from background.js */
 createRoomButton.onclick = async function () {
   log('Clicking CreateRoomButton');
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
