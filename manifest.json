@@ -1,7 +1,7 @@
 {
-  "name": "Roll Together",
-  "version": "2.2",
-  "description": "Synchronize Crunchyroll Videos and Skip Intros",
+  "name": "CrossWatch",
+  "version": "0.1",
+  "description": "Synchronize videos across various streaming services",
   "background": {
     "scripts": [
       "socket.io.js",
