@@ -111,6 +111,7 @@ chrome.runtime.onMessage.addListener(
       /* Handles connection for a new room.
        * Originates from createRoomButton.onclick in popup.js */
       case WebpageMessageTypes.ROOM_CONNECTION:
+        log('Room connection!');
         connectWebsocket(tabId, currentProgress, state, urlRoomId);
         break;
       /* Submits local video status/progress updates.
@@ -165,21 +166,24 @@ function connectWebsocket(tabId, videoProgress, videoState, urlRoomId) {
 
   let query = `videoProgress=${Math.round(videoProgress)}&videoState=${videoState}${(urlRoomId ? `&room=${urlRoomId}` : '')}`;
 
-  tabInfo.socket = io('https://roll-together.herokuapp.com/', { query });
+  getBackendUrl().then(function(url) {
+    tabInfo.socket = io(url, { query });
+    // tabInfo.socket = io('https://roll-together.herokuapp.com/', { query });
 
-  /* Listen for roomId and initial State and Progress from server. */
-  tabInfo.socket.on('join', (receivedRoomId, roomState, roomProgress) => {
-    tabInfo.roomId = receivedRoomId;
-    log('Sucessfully joined a room', { roomId: tabInfo.roomId, roomState, roomProgress });
-    tryUpdatePopup();
+    /* Listen for roomId and initial State and Progress from server. */
+    tabInfo.socket.on('join', (receivedRoomId, roomState, roomProgress) => {
+      tabInfo.roomId = receivedRoomId;
+      log('Sucessfully joined a room', { roomId: tabInfo.roomId, roomState, roomProgress });
+      tryUpdatePopup();
 
-    sendUpdateToWebpage(tabId, roomState, roomProgress);
-  });
+      sendUpdateToWebpage(tabId, roomState, roomProgress);
+    });
 
-  /* Listen for running updates of State and Progress from server. */
-  tabInfo.socket.on('update', (id, roomState, roomProgress) => {
-    log('Received update Message from ', id, { roomState, roomProgress });
-    sendUpdateToWebpage(tabId, roomState, roomProgress);
+    /* Listen for running updates of State and Progress from server. */
+    tabInfo.socket.on('update', (id, roomState, roomProgress) => {
+      log('Received update Message from ', id, { roomState, roomProgress });
+      sendUpdateToWebpage(tabId, roomState, roomProgress);
+    });
   });
 }
 

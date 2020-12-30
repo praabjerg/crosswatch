@@ -78,7 +78,7 @@ input:checked + .slider:before {
   text-align: center;
   background-color: #FEFEFE;
   width: 500px;
-  height: 410px;
+  height: 510px;
   border-radius: 10px;
 }
 
@@ -110,7 +110,7 @@ button {
   padding: 0px;
   height: 41px;
   width: 139px;
-  background-color: #F78C25;
+  background-color: #F72445;
   color: #FFFFFF;
   outline: none;
   display: flex;

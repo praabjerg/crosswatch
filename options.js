@@ -1,6 +1,8 @@
 const colorSelector = document.getElementById("colorSelector");
 let addButton = document.getElementById("addButton");
 let removeButton = document.getElementById("removeButton");
+const backendInput = document.getElementById("backendUrl");
+const updateButton = document.getElementById("updateButton");
 const input = document.getElementById("colorInput");
 const confirmationMessage = document.getElementById("confirmationMessage");
 const maxMenuSize = 10;
@@ -11,6 +13,7 @@ let extensionColor = null;
 getIntroFeatureState().then(state => skipIntroCheckBox.checked = state);
 getExtensionColor().then(color => updateExtensionColor(color));
 getColorMenu().then(colorOptions => buildButtons(colorOptions));
+getBackendUrl().then(url => backendInput.value = url);
 
 function setCheckBoxColor() {
   if(skipIntroCheckBox.checked) {
@@ -57,6 +60,15 @@ function colorCodeValidation(color) {
   return true;
 }
 
+backendInput.oninput = function () {
+  backendInput.style.backgroundColor = "#FFFE95";
+}
+
+updateButton.onclick = function () {
+  setBackendUrl(backendInput.value);
+  backendInput.style.backgroundColor = "#FFFFFF";
+}
+
 addButton.onclick = function() {
   const color = input.value.toUpperCase();
 
@@ -81,10 +93,10 @@ addButton.onclick = function() {
     updateExtensionColor(color);
 
     colorOptions.push(color);
-    
+
     setColorMenu(colorOptions);
     updateColorMenu(colorOptions);
-  }); 
+  });
 }
 
 removeButton.onclick = function() {
@@ -92,7 +104,7 @@ removeButton.onclick = function() {
 
   if(!colorCodeValidation(color)) return;
 
-  if(color === crunchyrollOrange) {
+  if(color === wRed) {
     confirmationMessage.innerText = "You can't remove this color!";
     log("Tried to remove theme color");
     return;
@@ -112,13 +124,19 @@ removeButton.onclick = function() {
     getExtensionColor().then( currentColor => {
       const isInMenu = colorOptions.includes(currentColor);
       if(!isInMenu) {
-        setExtensionColor(crunchyrollOrange);
-        updateExtensionColor(crunchyrollOrange);
+        setExtensionColor(wRed);
+        updateExtensionColor(wRed);
       }
     });
 
     setColorMenu(colorOptions);
     updateColorMenu(colorOptions);
+  });
+}
+
+function setBackendUrl(url) {
+  chrome.storage.sync.set({ backendUrl: url }, function () {
+    log("Backend url updated");
   });
 }
 
@@ -137,7 +155,7 @@ function setExtensionColor(color) {
 function buildButtons(colorOptions) {
   for (let color of colorOptions) {
     let newButton = document.createElement("button");
-    newButton.addEventListener("click", function () { 
+    newButton.addEventListener("click", function () {
       setExtensionColor(color);
       updateExtensionColor(color);
     });

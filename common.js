@@ -73,6 +73,14 @@ function executeScript(tabId, obj) {
   );
 }
 
+function getBackendUrl() {
+  return new Promise(callback => {
+    chrome.storage.sync.get({ backendUrl: "" }, function (data) {
+      callback(data.backendUrl);
+    });
+  });
+}
+
 function getExtensionColor() {
   return new Promise(callback => {
     chrome.storage.sync.get({ extensionColor: wRed }, function (data) {
