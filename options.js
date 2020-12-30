@@ -6,37 +6,14 @@ const updateButton = document.getElementById("updateButton");
 const input = document.getElementById("colorInput");
 const confirmationMessage = document.getElementById("confirmationMessage");
 const maxMenuSize = 10;
-const skipIntroCheckBox = document.getElementById("skipIntroCheckbox");
-const spanIntroCheckBox = document.getElementById("spanIntroCheckBox");
 let extensionColor = null;
 
-getIntroFeatureState().then(state => skipIntroCheckBox.checked = state);
 getExtensionColor().then(color => updateExtensionColor(color));
 getColorMenu().then(colorOptions => buildButtons(colorOptions));
 getBackendUrl().then(url => backendInput.value = url);
 
-function setCheckBoxColor() {
-  if(skipIntroCheckBox.checked) {
-    spanIntroCheckBox.style.backgroundColor = extensionColor;
-  } else {
-    spanIntroCheckBox.style.backgroundColor = chineseSilver;
-  }
-}
-
-skipIntroCheckBox.onclick = () => {
-  setCheckBoxColor();
-  setIntroFeatureState(skipIntroCheckBox.checked);
-}
-
-function setIntroFeatureState(state) {
-  chrome.storage.sync.set({ isIntroFeatureActive: state }, function () {
-    log("Setting intro feature state to " + state);
-  });
-}
-
 function updateExtensionColor(color) {
   extensionColor = color;
-  setCheckBoxColor();
   input.value = color;
   addButton.style.backgroundColor = color;
   removeButton.style.backgroundColor = color;

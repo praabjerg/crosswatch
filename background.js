@@ -4,9 +4,6 @@
 /* Identifies the Crunchyroll tab and keeps useful information under its tabId (socket, roomId) */
 const tabsInfo = {};
 
-const skipIntroSocket = io('https://rt-skip-intro.azurewebsites.net');
-const skipIntroPendingRequests = {};
-
 loadStyles();
 
 /* Searching through, I don't actually think this regex is used for anything.
@@ -18,7 +15,7 @@ chrome.tabs.onActivated.addListener(({ tabId }) => {
   getExtensionColor().then(color => setIconColor(tabId, color));
 });
 
-/* On installation, set rule for when to activate the extension popup (popup.html, popup.js)
+/* On installation, set rule for when to make the extension popup available (popup.html, popup.js)
  * In this case, we have to be on www.crunchyroll.*, and the page has to contain a vilos-player
  * in an iframe.*/
 chrome.runtime.onInstalled.addListener(function () {
@@ -55,15 +52,6 @@ async function handleWebpageConnection(tab, url) {
   if (urlRoomId) {
     sendConnectionRequestToWebpage(tab);
   }
-
-  /* Skip-button functionality. To be removed in favor of making the
-   * the code more generic across streaming services. */
-  const skipIntro = await getIntroFeatureState();
-  if (skipIntro) {
-    log('Sending skip intro marks request.', { url });
-    skipIntroSocket.emit('skip-marks', url);
-    skipIntroPendingRequests[url] = true;
-  }
 }
 
 /* Runs update() function from popup.js if Popup is active */
@@ -92,7 +80,6 @@ function disconnectWebsocket(tabId) {
 
   tryUpdatePopup();
 }
-
 
 chrome.runtime.onMessage.addListener(
   function ({ state, currentProgress, type }, sender) {
@@ -253,31 +240,6 @@ function loadStyles() {
   link.media = 'all';
   head.appendChild(link);
 }
-
-skipIntroSocket.on('skip-marks', ({ url, marks, error }) => {
-  log('Receiving skip intro marks response', { url, marks, error })
-  delete skipIntroPendingRequests[url];
-  if (error) {
-    return;
-  }
-
-  chrome.tabs.query({ url }, function (tabs) {
-    tabs.forEach(tab => {
-      try {
-        chrome.tabs.sendMessage(tab.id, { type: BackgroundMessageTypes.SKIP_MARKS, marks });
-      } catch (e) {
-        console.error(e);
-      }
-    })
-  })
-})
-
-skipIntroSocket.on('reconnect', () => {
-  log('Reconnected')
-  for (const url in skipIntroPendingRequests) {
-    skipIntroSocket.emit('skip-marks', url)
-  }
-})
 
 window.updatePopup = null;
 window.createRoom = sendConnectionRequestToWebpage;
