@@ -113,7 +113,7 @@ chrome.runtime.onMessage.addListener(
 );
 
 /* Handle State/Progress update from server. Called from listeners set up in
- * connectWebSocket. */
+ * connectWebsocket. */
 function sendUpdateToWebpage(tabId, roomState, roomProgress) {
   log('Sending update to webpage', { tabId, roomState, roomProgress });
   const tabInfo = tabsInfo[tabId];
