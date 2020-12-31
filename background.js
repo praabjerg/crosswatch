@@ -82,11 +82,10 @@ function disconnectWebsocket(tabId) {
 }
 
 chrome.runtime.onMessage.addListener(
-  function ({ state, currentProgress, type }, sender) {
+  function ({ state, currentProgress, type, roomId }, sender) {
     const tabId = sender.tab.id;
     const tabInfo = tabsInfo[tabId];
     const url = sender.tab.url;
-    const urlRoomId = getParameterByName(url);
 
     log('Received webpage message', { type, state, currentProgress, url, sender });
     switch (type) {
@@ -99,7 +98,7 @@ chrome.runtime.onMessage.addListener(
        * Originates from createRoomButton.onclick in popup.js */
       case WebpageMessageTypes.ROOM_CONNECTION:
         log('Room connection!');
-        connectWebsocket(tabId, currentProgress, state, urlRoomId);
+        connectWebsocket(tabId, currentProgress, state, roomId);
         break;
       /* Submits local video status/progress updates.
        * Originates from handleLocalAction in content_script.js */
@@ -122,12 +121,12 @@ function sendUpdateToWebpage(tabId, roomState, roomProgress) {
   chrome.tabs.sendMessage(tabId, { type, roomState, roomProgress });
 }
 
-function sendConnectionRequestToWebpage(tab) {
+function sendConnectionRequestToWebpage(tab, roomId) {
   const tabId = tab.id;
   const tabInfo = tabsInfo[tabId];
 
   if (tabInfo.socket != null) {
-    if (getParameterByName(tab.url, 'rollTogetherRoom') === tabsInfo.roomId) {
+    if (roomId === tabInfo.roomId) {
       return;
     }
     disconnectWebsocket(tabId);
@@ -143,15 +142,15 @@ function sendConnectionRequestToWebpage(tab) {
    * This roundtrip happens to collect initial information about video status via
    * getStates in content_script.js, and is activated on new room connections from
    * createRoomButton.onclick in popup.js. */
-  chrome.tabs.sendMessage(tab.id, { type: BackgroundMessageTypes.ROOM_CONNECTION });
+  chrome.tabs.sendMessage(tab.id, { type: BackgroundMessageTypes.ROOM_CONNECTION, roomId: roomId });
 }
 
 /* Connect websocket to server. */
-function connectWebsocket(tabId, videoProgress, videoState, urlRoomId) {
-  log('Connecting websocket', { tabId, videoProgress, videoState, urlRoomId });
+function connectWebsocket(tabId, videoProgress, videoState, roomId) {
+  log('Connecting websocket', { tabId, videoProgress, videoState, roomId });
   const tabInfo = tabsInfo[tabId];
 
-  let query = `videoProgress=${Math.round(videoProgress)}&videoState=${videoState}${(urlRoomId ? `&room=${urlRoomId}` : '')}`;
+  let query = `videoProgress=${Math.round(videoProgress)}&videoState=${videoState}${(roomId ? `&room=${roomId}` : '')}`;
 
   getBackendUrl().then(function(url) {
     tabInfo.socket = io(url, { query });

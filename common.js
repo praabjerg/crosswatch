@@ -80,6 +80,14 @@ function getBackendUrl() {
   });
 }
 
+function getDefaultRoomId() {
+  return new Promise(callback => {
+    chrome.storage.sync.get({ defaultRoomId: "" }, function (data) {
+      callback(data.defaultRoomId);
+    });
+  });
+}
+
 function getExtensionColor() {
   return new Promise(callback => {
     chrome.storage.sync.get({ extensionColor: wRed }, function (data) {

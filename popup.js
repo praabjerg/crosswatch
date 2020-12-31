@@ -2,9 +2,9 @@ const background = chrome.extension.getBackgroundPage();
 let connected = false;
 
 const createRoomButton = document.getElementById('createRoom');
-const copyUrlButton = document.getElementById('copyUrl');
+const copyIdButton = document.getElementById('copyId');
 const disconnectButton = document.getElementById('disconnect');
-const urlInput = document.getElementById('urlInput');
+const idInput = document.getElementById('idInput');
 let optionButtons = document.getElementsByClassName('actionButton');
 
 getExtensionColor().then(color => {
@@ -24,19 +24,23 @@ function update() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tab = tabs[0];
     const roomId = background.window.getRoomId(tab.id);
+    // const roomId = idInput.value;
     const connected = roomId != null;
 
     log('Updating Popup...', { roomId, connected });
 
     if (connected) {
-      const url = updateQueryStringParameter(tab.url, 'rollTogetherRoom', roomId)
-      urlInput.value = url;
-      urlInput.focus();
-      urlInput.select();
+      idInput.value = roomId;
+      idInput.focus();
+      idInput.select();
 
       [...document.getElementsByClassName('firstPage')].forEach(el => el.style.display = 'none');
       [...document.getElementsByClassName('secondPage')].forEach(el => el.style = {});
     } else {
+      getDefaultRoomId().then(roomId => {
+        log('Setting roomId field');
+        idInput.value = roomId;
+      });
       [...document.getElementsByClassName('firstPage')].forEach(el => el.style = {});
       [...document.getElementsByClassName('secondPage')].forEach(el => el.style.display = 'none');
     }
@@ -52,14 +56,14 @@ window.addEventListener('beforeunload', () => {
 createRoomButton.onclick = async function () {
   log('Clicking CreateRoomButton');
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    background.window.createRoom(tabs[0]);
+    background.window.createRoom(tabs[0], idInput.value);
   });
 };
 
-copyUrlButton.onclick = function () {
-  log('Clicking CopyUrlButton');
-  urlInput.focus();
-  urlInput.select();
+copyIdButton.onclick = function () {
+  log('Clicking CopyIdButton');
+  idInput.focus();
+  idInput.select();
   document.execCommand('copy');
 }
 
@@ -70,7 +74,7 @@ disconnectButton.onclick = function () {
   })
 }
 
-urlInput.onclick = function () {
+idInput.onclick = function () {
 }
 
 background.window.updatePopup = update;

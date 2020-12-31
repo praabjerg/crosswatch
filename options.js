@@ -3,6 +3,8 @@ let addButton = document.getElementById("addButton");
 let removeButton = document.getElementById("removeButton");
 const backendInput = document.getElementById("backendUrl");
 const updateButton = document.getElementById("updateButton");
+const defaultRoomInput = document.getElementById("defaultRoomInput");
+const updateRoomButton = document.getElementById("updateRoomButton");
 const input = document.getElementById("colorInput");
 const confirmationMessage = document.getElementById("confirmationMessage");
 const maxMenuSize = 10;
@@ -11,6 +13,7 @@ let extensionColor = null;
 getExtensionColor().then(color => updateExtensionColor(color));
 getColorMenu().then(colorOptions => buildButtons(colorOptions));
 getBackendUrl().then(url => backendInput.value = url);
+getDefaultRoomId().then(roomId => defaultRoomInput.value = roomId);
 
 function updateExtensionColor(color) {
   extensionColor = color;
@@ -44,6 +47,15 @@ backendInput.oninput = function () {
 updateButton.onclick = function () {
   setBackendUrl(backendInput.value);
   backendInput.style.backgroundColor = "#FFFFFF";
+}
+
+defaultRoomInput.oninput = function () {
+  defaultRoomInput.style.backgroundColor = "#FFFE95";
+}
+
+updateRoomButton.onclick = function () {
+  setDefaultRoomId(defaultRoomInput.value);
+  defaultRoomInput.style.backgroundColor = "#FFFFFF";
 }
 
 addButton.onclick = function() {
@@ -114,6 +126,12 @@ removeButton.onclick = function() {
 function setBackendUrl(url) {
   chrome.storage.sync.set({ backendUrl: url }, function () {
     log("Backend url updated");
+  });
+}
+
+function setDefaultRoomId(roomId) {
+  chrome.storage.sync.set({ defaultRoomId: roomId }, function () {
+    log("Default Room ID updated");
   });
 }
 

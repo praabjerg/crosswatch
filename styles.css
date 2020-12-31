@@ -78,7 +78,7 @@ input:checked + .slider:before {
   text-align: center;
   background-color: #FEFEFE;
   width: 500px;
-  height: 450px;
+  height: 650px;
   border-radius: 10px;
 }
 

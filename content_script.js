@@ -67,11 +67,11 @@ function triggerAction(action, progress) {
   }
 }
 
-function sendRoomConnectionMessage() {
+function sendRoomConnectionMessage(roomId) {
   const { state, currentProgress } = getStates();
   const type = WebpageMessageTypes.ROOM_CONNECTION;
   chrome.runtime.sendMessage(
-    { state, currentProgress, type }
+    { state, currentProgress, type, roomId }
   );
 }
 
@@ -92,11 +92,12 @@ function handleRemoteUpdate({ roomState, roomProgress }) {
 function handleBackgroundMessage(args) {
   log("Received message from Background", args);
 
-  const { type } = args;
+  const type = args.type;
+  const roomId = args.roomId;
   switch (type) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
       /* Handle connection to create a new room. */
-      sendRoomConnectionMessage();
+      sendRoomConnectionMessage(roomId);
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
