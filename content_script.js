@@ -117,7 +117,8 @@ function handleBackgroundMessage(args) {
  * The runtime.onMessage listener handleBackgroundMessage is used to handle
  * messages from backround.js */
 function runContentScript() {
-  player = document.getElementById("player0");
+  const videotags = document.getElementsByTagName("video");
+  player = videotags[0]
 
   if (!player) {
     setTimeout(runContentScript, 500);
