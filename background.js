@@ -41,16 +41,11 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
   delete tabsInfo[tabId];
 });
 
-async function handleWebpageConnection(tab, url) {
+async function handleWebpageConnection(tab) {
   const tabId = tab.id;
 
   if (!tabsInfo[tabId]) {
     tabsInfo[tabId] = { tabId };
-  }
-
-  const urlRoomId = getParameterByName(url, 'rollTogetherRoom');
-  if (urlRoomId) {
-    sendConnectionRequestToWebpage(tab);
   }
 }
 
@@ -92,7 +87,7 @@ chrome.runtime.onMessage.addListener(
       /* Handles connection for existing room.
        * Originates from runContentScript in content_script.js */
       case WebpageMessageTypes.CONNECTION:
-        handleWebpageConnection(sender.tab, url)
+        handleWebpageConnection(sender.tab)
         break;
       /* Handles connection for a new room.
        * Originates from createRoomButton.onclick in popup.js */
@@ -154,7 +149,6 @@ function connectWebsocket(tabId, videoProgress, videoState, roomId) {
 
   getBackendUrl().then(function(url) {
     tabInfo.socket = io(url, { query });
-    // tabInfo.socket = io('https://roll-together.herokuapp.com/', { query });
 
     /* Listen for roomId and initial State and Progress from server. */
     tabInfo.socket.on('join', (receivedRoomId, roomState, roomProgress) => {

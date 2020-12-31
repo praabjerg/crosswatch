@@ -43,18 +43,6 @@ function log() {
   return DEBUG && console.log(...args);
 }
 
-function getParameterByName(url, name = 'rollTogetherRoom') {
-  const queryString = /\?[^#]+(?=#|$)|$/.exec(url)[0];
-  const regex = new RegExp("(?:[?&]|^)" + name + "=([^&#]*)");
-  const results = regex.exec(queryString);
-
-  if (!results || results.length < 2) {
-    return null;
-  }
-
-  return decodeURIComponent(results[1].replace(/\+/g, " "));
-}
-
 function updateQueryStringParameter(uri, key, value) {
   var re = new RegExp("([?&])" + key + "=.*?(&|$)", "i");
   var separator = uri.indexOf('?') !== -1 ? "&" : "?";
