@@ -15,7 +15,8 @@
       "all_frames": true,
       "matches": [
         "*://static.crunchyroll.com/*",
-        "*://www.wakanim.tv/*"
+        "*://www.wakanim.tv/*",
+        "*://www.funimation.com/*"
       ],
       "js": [
         "common.js",
@@ -31,7 +32,8 @@
     "declarativeContent",
     "*://www.crunchyroll.com/*",
     "*://static.crunchyroll.com/*",
-    "*://www.wakanim.tv/*"
+    "*://www.wakanim.tv/*",
+    "*://www.funimation.com/*"
   ],
   "page_action": {
     "default_popup": "popup.html",

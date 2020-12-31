@@ -28,6 +28,9 @@ chrome.runtime.onInstalled.addListener(function () {
         }),
         new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: "http.*:\/\/www\.wakanim.*\/[^\/]+\/.*" },
+        }),
+        new chrome.declarativeContent.PageStateMatcher({
+          pageUrl: { urlMatches: "http.*:\/\/www\.funimation.*\/[^\/]+\/.*" },
         })
       ],
       actions: [new chrome.declarativeContent.ShowPageAction()]
