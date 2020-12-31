@@ -24,7 +24,6 @@ function update() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tab = tabs[0];
     const roomId = background.window.getRoomId(tab.id);
-    // const roomId = idInput.value;
     const connected = roomId != null;
 
     log('Updating Popup...', { roomId, connected });
