@@ -14,12 +14,6 @@ getExtensionColor().then(color => {
   }
 });
 
-function executeScript(tabId, obj) {
-  return new Promise(
-    callback => chrome.tabs.executeScript(tabId, obj, callback)
-  );
-}
-
 function update() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tab = tabs[0];

@@ -43,12 +43,6 @@ function log() {
   return DEBUG && console.log(...args);
 }
 
-function executeScript(tabId, obj) {
-  return new Promise(
-    callback => chrome.tabs.executeScript(tabId, obj, callback)
-  );
-}
-
 function getBackendUrl() {
   return new Promise(callback => {
     chrome.storage.sync.get({ backendUrl: "" }, function (data) {
