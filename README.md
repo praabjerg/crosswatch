@@ -6,15 +6,9 @@ CrossWatch is derived from [Roll Together](https://github.com/samuraiexx/roll_to
 For now, it uses the exact same backend code as the [Roll Together Backend](https://github.com/samuraiexx/roll_together_backend), and transmits only video state and progress, and nothing about the service or which video you're watching. This simplicity was the reason I got the idea of generalising the extension across multiple services. Many streaming services are regional, and shows are sometimes licensed by different streaming services in different regions. Being able to synchronise a watch party across streaming services would be a cool feature for international online communities. The only changes I will be making in the backend is to the package name, and perhaps to how the binding address is set up. I'm not myself interested in running an instance for public use, but maybe I can make it a bit easier for communities to set up instances themselves.
 
 ## How to use it
-Experimentation is welcome, but it is still under development, and has not yet been uploaded to the Chrome Store. It can be installed from source as follows:
-1. Open the Extension Management page by navigating to chrome://extensions.
-    - The Extension Management page can also be opened by clicking on the Chrome menu, hovering over More Tools then select Extensions.
-2. Enable Developer Mode by clicking the toggle switch next to Developer mode.
-3. Click the LOAD UNPACKED button and select the extension directory.
+It is now available on the Chrome Store: https://chrome.google.com/webstore/detail/crosswatch/bbnnjociplbmdbfmcnmmoingcmfincdh
 
-![](https://developer.chrome.com/static/images/get_started/load_extension.png)
-
-Instructions from https://developer.chrome.com/extensions/getstarted
+I do not at the moment run a public server for the extension, so you will have to set up a server of your own (link for backend code below).
 
 ## Related Repos
 Backend repo: https://github.com/praabjerg/crosswatch_backend
