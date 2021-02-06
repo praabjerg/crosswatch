@@ -19,7 +19,7 @@ Insert Backend URL and click the update button. Using a Default Room ID is not n
 
 ![Options menu with Backend URL and Default Room ID](/readme_imgs/CWOptions.png)
 
-Unfortunately, CrossWatch and Roll Together are in conflict when watching on CrunchyRoll. I'm going to try to fix this for the next update, but until then, you should only have one of the extensions active at a time. Go to the Manage extensions page.
+Unfortunately, because CrossWatch was developed from Roll Together's code, they are in conflict when watching on CrunchyRoll. I'm going to try to fix this for the next update, but until then, you should only have one of the extensions active at a time. Go to the Manage extensions page.
 
 ![Navigate to Manage extensions page](/readme_imgs/ExtensionMenu1.png)
 
