@@ -7,6 +7,7 @@ For now, it uses the exact same backend code as the [Roll Together Backend](http
 
 ## Setting up
 It is now available on the Chrome Store: https://chrome.google.com/webstore/detail/crosswatch/bbnnjociplbmdbfmcnmmoingcmfincdh
+
 **I do not at the moment run a public server for the extension**, so someone in your watch party group will have to set up a backend server. See: https://github.com/praabjerg/crosswatch_backend
 
 ### User Guide
