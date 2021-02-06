@@ -35,7 +35,7 @@ You can choose a Room ID to join (if it doesn't exist on the server, it will be 
 
 ![Join a Room](/readme_imgs/CWJoin.png)
 
-It should stay connected within the same tab, so any videos you navigate to on any of the three services will synchronize to the room you've joined.
+It should stay connected within the same tab, so any videos you navigate to on any of the three services **within that tab** will synchronize to the room you've joined.
 
 ## Related Repos
 Backend repo: https://github.com/praabjerg/crosswatch_backend
