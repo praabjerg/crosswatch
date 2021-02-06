@@ -5,10 +5,36 @@ CrossWatch is derived from [Roll Together](https://github.com/samuraiexx/roll_to
 
 For now, it uses the exact same backend code as the [Roll Together Backend](https://github.com/samuraiexx/roll_together_backend), and transmits only video state and progress, and nothing about the service or which video you're watching. This simplicity was the reason I got the idea of generalising the extension across multiple services. Many streaming services are regional, and shows are sometimes licensed by different streaming services in different regions. Being able to synchronise a watch party across streaming services would be a cool feature for international online communities. The only changes I will be making in the backend is to the package name, and perhaps to how the binding address is set up. I'm not myself interested in running an instance for public use, but maybe I can make it a bit easier for communities to set up instances themselves.
 
-## How to use it
+## Setting up
 It is now available on the Chrome Store: https://chrome.google.com/webstore/detail/crosswatch/bbnnjociplbmdbfmcnmmoingcmfincdh
+**I do not at the moment run a public server for the extension**, so someone in your watch party group will have to set up a backend server. See: https://github.com/praabjerg/crosswatch_backend
 
-I do not at the moment run a public server for the extension, so you will have to set up a server of your own (link for backend code below).
+### User Guide
+Go to the Extensions menu and find the Options menu for CrossWatch.
+
+![Navigate to Options menu for CrossWatch](/readme_imgs/ExtensionMenu2.png)
+
+Insert Backend URL and click the update button. Using a Default Room ID is not necessary, but can be practical if you watch with the same group frequently.
+
+![Options menu with Backend URL and Default Room ID](/readme_imgs/CWOptions.png)
+
+Unfortunately, CrossWatch and Roll Together are in conflict when watching on CrunchyRoll. I'm going to try to fix this for the next update, but until then, you should only have one of the extensions active at a time. Go to the Manage extensions page.
+
+![Navigate to Manage extensions page](/readme_imgs/ExtensionMenu1.png)
+
+Use the toggles in the lower right of the extensions to disable the one you're not using.
+
+![Roll Together and CrossWatch should not be active at the same time](/readme_imgs/ExtensionDisable.png)
+
+To activate the extension, go to the video you're watching (on Funimation, Wakanim or CrunchyRoll), and click CrossWatch in the extensions menu.
+
+![Activate CrossWatch](/readme_imgs/CWExtension.png)
+
+You can choose a Room ID to join (if it doesn't exist on the server, it will be created), or you can leave it empty and it will generate a Room ID for you to share.
+
+![Join a Room](/readme_imgs/CWJoin.png)
+
+It should stay connected within the same tab, so any videos you navigate to on any of the three services will synchronize to the room you've joined.
 
 ## Related Repos
 Backend repo: https://github.com/praabjerg/crosswatch_backend
