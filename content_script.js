@@ -4,6 +4,7 @@ const ignoreNext = {};
 
 let player = null;
 let lastFrameProgress = null;
+let observer = null;
 
 function getState(stateName) {
   return player[stateName];
@@ -67,6 +68,41 @@ function triggerAction(action, progress) {
   }
 }
 
+function setUpChatBox() {
+  const playerRoot = document.getElementById("vilosRoot");
+  const playerContainer = document.getElementById("velocity-player-package");
+  const player = document.getElementById("player0");
+  const playerControls = document.getElementById("vilosControlsContainer"); // Observe this for mutations to see if controls are active
+  const controlsPackage = document.getElementById("velocity-controls-package");
+  const chatIcon = document.createElement("div");
+  const chatImg = document.createElement("img");
+  const mutationConfig = {attributes: false, childList: true, subtree: false}
+  const mutationCallback = function(mutationsList, observer) {
+    mutationsList.forEach((mutation) => {
+      if (controlsPackage.children.length > 1) {
+        chatIcon.classList.remove("elementBGone");
+      } else {
+        chatIcon.classList.add("elementBGone");
+      }
+      console.log('A child node has been added or removed ', controlsPackage.children.length);
+    });
+  }
+  observer = new MutationObserver(mutationCallback);
+  observer.observe(controlsPackage, mutationConfig);
+
+  chatIcon.setAttribute("id", "chatBoxIcon");
+  chatIcon.appendChild(chatImg);
+  chatImg.setAttribute("src", chrome.extension.getURL("imgs/chatIcon.png"));
+  chatImg.setAttribute("alt", "Chat Icon. Click to toggle chat box.");
+  playerRoot.appendChild(chatIcon);
+}
+
+function tearDownChatBox() {
+  const chatIcon = document.getElementById("chatBoxIcon");
+  observer.disconnect();
+  chatIcon.remove();
+}
+
 function sendRoomConnectionMessage(roomId) {
   const { state, currentProgress } = getStates();
   const type = WebpageMessageTypes.ROOM_CONNECTION;
@@ -89,6 +125,10 @@ function handleRemoteUpdate({ roomState, roomProgress }) {
   }
 }
 
+/* Used by handleBackgroundMessage to handle REMOTE_CHAT */
+function handleRemoteChatMessage({ nick, message }) {
+}
+
 function handleBackgroundMessage(args) {
   log("Received message from Background", args);
 
@@ -96,20 +136,26 @@ function handleBackgroundMessage(args) {
   const roomId = args.roomId;
   switch (type) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
+      setUpChatBox();
       /* Handle connection to create a new room. */
       sendRoomConnectionMessage(roomId);
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
       break;
+    case BackgroundMessageTypes.REMOTE_CHAT:
+      handleRemoteChatMessage(args);
+      break;
+    case BackgroundMessageTypes.ROOM_DISCONNECT:
+      tearDownChatBox();
+      break;
     default:
       throw "Invalid BackgroundMessageType: " + type;
   }
 }
 
-/* Main function of content script. Checks for the appropriate <video>
- * element on the page. "player0" is the id given to the <video> tag within
- * the iframe of CrunchyRoll's vilos-player.
+/* Main function of content script. Finds the (hopefully) correct <video>
+ * element on the page.
  * An local action listener (handleLocalAction) is set up to listen for
  * actions performed on the video by the local user, and will use the
  * chrome.runtime.onMessage listener in background.js to propagate

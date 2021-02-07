@@ -21,9 +21,13 @@
       "js": [
         "common.js",
         "content_script.js"
+      ],
+      "css": [
+        "chatstyles.css"
       ]
     }
   ],
+  "web_accessible_resources": ["imgs/chatIcon.png"],
   "permissions": [
     "storage",
     "tabs",

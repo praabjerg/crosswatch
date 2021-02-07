@@ -49,6 +49,7 @@ chrome.tabs.onRemoved.addListener(function (tabId) {
   delete tabsInfo[tabId];
 });
 
+/* Setup connection with content_script in tab */
 async function handleWebpageConnection(tab) {
   const tabId = tab.id;
 
@@ -75,6 +76,8 @@ function disconnectWebsocket(tabId) {
   }
   const { socket } = tabsInfo[tabId]
 
+  chrome.tabs.sendMessage(tabId, { type: BackgroundMessageTypes.ROOM_DISCONNECT });
+
   if (socket) {
     socket.disconnect();
     delete tabsInfo[tabId].socket;
@@ -85,28 +88,38 @@ function disconnectWebsocket(tabId) {
 }
 
 chrome.runtime.onMessage.addListener(
-  function ({ state, currentProgress, type, roomId }, sender) {
+  function (msg, sender) {
+    const type = msg.type;
     const tabId = sender.tab.id;
     const tabInfo = tabsInfo[tabId];
     const url = sender.tab.url;
+    /* if update, { state, currentProgress, type, roomId }
+     * if chat,   { nick, message, type, roomId }*/
 
-    log('Received webpage message', { type, state, currentProgress, url, sender });
     switch (type) {
-      /* Handles connection for existing room.
+      /* Handles new connection from content_script in tab.
        * Originates from runContentScript in content_script.js */
       case WebpageMessageTypes.CONNECTION:
+        log('Received webpage message', { type, state: msg.state, currentProgress: msg.currentProgress, url, sender });
         handleWebpageConnection(sender.tab)
         break;
-      /* Handles connection for a new room.
+      /* Handles connection to join a room.
        * Originates from createRoomButton.onclick in popup.js */
       case WebpageMessageTypes.ROOM_CONNECTION:
-        log('Room connection!');
-        connectWebsocket(tabId, currentProgress, state, roomId);
+        log('Received webpage message', { type, state: msg.state, currentProgress: msg.currentProgress, url, sender });
+        connectWebsocket(tabId, msg.currentProgress, msg.state, msg.roomId);
         break;
       /* Submits local video status/progress updates.
        * Originates from handleLocalAction in content_script.js */
       case (WebpageMessageTypes.LOCAL_UPDATE):
-        tabInfo.socket && tabInfo.socket.emit('update', state, currentProgress);
+        log('Received webpage message', { type, state: msg.state, currentProgress: msg.currentProgress, url, sender });
+        tabInfo.socket && tabInfo.socket.emit('update', msg.state, msg.currentProgress);
+        break;
+      /* Submits local chat message
+       * Originates from ?? in content_script.js */
+      case (WebpageMessageTypes.LOCAL_CHAT):
+        log('Received webpage message', { type, nick: msg.nick, message: msg.message, url, sender });
+        tabInfo.socket && tabInfo.socket.emit('chat', msg.nick, msg.message);
         break;
       default:
         throw "Invalid WebpageMessageType " + type;
@@ -122,6 +135,16 @@ function sendUpdateToWebpage(tabId, roomState, roomProgress) {
 
   const type = BackgroundMessageTypes.REMOTE_UPDATE;
   chrome.tabs.sendMessage(tabId, { type, roomState, roomProgress });
+}
+
+/* Handle chat messages from server. Called from listeners set up in
+ * connectWebsocket. */
+function sendChatToWebpage(tabId, nick, message) {
+  log('Sending chat to webpage', { tabId, nick, message });
+  const tabInfo = tabsInfo[tabId];
+
+  const type = BackgroundMessageTypes.REMOTE_CHAT;
+  chrome.tabs.sendMessage(tabId, { type, nick, message });
 }
 
 function sendConnectionRequestToWebpage(tab, roomId) {
@@ -169,10 +192,16 @@ function connectWebsocket(tabId, videoProgress, videoState, roomId) {
 
     /* Listen for running updates of State and Progress from server. */
     tabInfo.socket.on('update', (id, roomState, roomProgress) => {
-      log('Received update Message from ', id, { roomState, roomProgress });
+      log('Received update message from ', id, { roomState, roomProgress });
       sendUpdateToWebpage(tabId, roomState, roomProgress);
     });
-  });
+
+    /* Listen for chat messages from server. */
+    tabInfo.socket.on('chat', (id, nick, message) => {
+      log('Received chat message from ', id, { nick, message });
+      sendChatToWebpage(tabId, nick, message);
+    });
+});
 }
 
 /* Sets "RT" icon color */
