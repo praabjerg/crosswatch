@@ -1,10 +1,33 @@
 /* content_script.js manipulates the HTML5 video-player and captures actions related to it. */
 
 const ignoreNext = {};
+const nick = "Red Violet";
 
 let player = null;
 let lastFrameProgress = null;
-let observer = null;
+
+const chatIcon = document.createElement("div");
+chatIcon.setAttribute("id", "chatBoxIcon");
+const chatImg = document.createElement("img");
+chatImg.setAttribute("src", chrome.extension.getURL("imgs/chatIcon.png"));
+chatImg.setAttribute("alt", "Chat Icon. Click to toggle chat box.");
+chatIcon.appendChild(chatImg);
+
+const chatBoxHTML = '<div id="chatBox">' +
+      '<div id="chatFeed"></div>' +
+      '<textarea id="chatInput" maxlength=120></textarea>' +
+      '</div>';
+const wrapper = document.createElement('div');
+wrapper.innerHTML = chatBoxHTML;
+const chatBox = wrapper.firstChild;
+//const chatBox = new DOMParser().parseFromString(chatBoxHTML, "text/xml");
+//const chatBox = document.createElement("div");
+//chatBox.setAttribute("id", "chatBox");
+
+let iconTimeout = null;
+function iconTimeoutFunc() {
+  chatIcon.classList.add("elementBGone");
+}
 
 function getState(stateName) {
   return player[stateName];
@@ -68,39 +91,69 @@ function triggerAction(action, progress) {
   }
 }
 
+function moveListener() {
+  chatIcon.classList.remove("elementBGone");
+  window.clearTimeout(iconTimeout);
+  iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
+}
+
+function outListener() {
+  chatIcon.classList.add("elementBGone");
+}
+
+function keyListener(event) {
+  event.stopPropagation();
+  const chatInput = document.getElementById("chatInput");
+  if (event.key === "Enter") {
+    event.preventDefault();
+    chrome.runtime.sendMessage(
+      { nick: nick,
+        message: chatInput.value,
+        type: WebpageMessageTypes.LOCAL_CHAT }
+    );
+    chatInput.value = "";
+  }
+}
+
 function setUpChatBox() {
   const playerRoot = document.getElementById("vilosRoot");
   const playerContainer = document.getElementById("velocity-player-package");
   const player = document.getElementById("player0");
-  const playerControls = document.getElementById("vilosControlsContainer"); // Observe this for mutations to see if controls are active
+  const subCanvas = document.getElementById("velocity-canvas");
   const controlsPackage = document.getElementById("velocity-controls-package");
-  const chatIcon = document.createElement("div");
-  const chatImg = document.createElement("img");
-  const mutationConfig = {attributes: false, childList: true, subtree: false}
-  const mutationCallback = function(mutationsList, observer) {
-    mutationsList.forEach((mutation) => {
-      if (controlsPackage.children.length > 1) {
-        chatIcon.classList.remove("elementBGone");
-      } else {
-        chatIcon.classList.add("elementBGone");
-      }
-      console.log('A child node has been added or removed ', controlsPackage.children.length);
-    });
-  }
-  observer = new MutationObserver(mutationCallback);
-  observer.observe(controlsPackage, mutationConfig);
+  let showChatBox = false;
 
-  chatIcon.setAttribute("id", "chatBoxIcon");
-  chatIcon.appendChild(chatImg);
-  chatImg.setAttribute("src", chrome.extension.getURL("imgs/chatIcon.png"));
-  chatImg.setAttribute("alt", "Chat Icon. Click to toggle chat box.");
+  chatIcon.onclick = function() {
+    if (showChatBox) {
+      player.classList.remove("videoCR");
+      subCanvas.classList.remove("canvasCR");
+      showChatBox = false;
+      chatBox.remove();
+    } else {
+      player.classList.add("videoCR");
+      subCanvas.classList.add("canvasCR");
+      playerRoot.appendChild(chatBox);
+      showChatBox = true;
+    }
+  }
+
+  iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
   playerRoot.appendChild(chatIcon);
+  playerRoot.addEventListener("mousemove", moveListener);
+  playerRoot.addEventListener("mouseout", outListener);
+  playerRoot.addEventListener("keydown", keyListener);
 }
 
 function tearDownChatBox() {
+  const playerRoot = document.getElementById("vilosRoot");
   const chatIcon = document.getElementById("chatBoxIcon");
-  observer.disconnect();
   chatIcon.remove();
+  chatBox.remove();
+  playerRoot.removeEventListener("mousemove", moveListener);
+  playerRoot.removeEventListener("mouseout", outListener);
+  playerRoot.removeEventListener("keydown", keyListener);
+  player.classList.remove("videoCR");
+  subCanvas.classList.remove("canvasCR");
 }
 
 function sendRoomConnectionMessage(roomId) {
@@ -127,6 +180,7 @@ function handleRemoteUpdate({ roomState, roomProgress }) {
 
 /* Used by handleBackgroundMessage to handle REMOTE_CHAT */
 function handleRemoteChatMessage({ nick, message }) {
+  console.log(message);
 }
 
 function handleBackgroundMessage(args) {
