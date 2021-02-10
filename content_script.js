@@ -1,5 +1,19 @@
 /* content_script.js manipulates the HTML5 video-player and captures actions related to it. */
 
+function checkService() {
+  if (window.location.href.includes("crunchyroll.com")) {
+    return Site.CRUNCHYROLL;
+  }
+  else if (window.location.href.includes("funimation.com")) {
+    return Site.FUNIMATION;
+  }
+  else if (window.location.href.includes("wakanim.tv")) {
+    return Site.WAKANIM;
+  }
+}
+
+const service = checkService();
+
 const ignoreNext = {};
 
 let player = null;
@@ -107,6 +121,43 @@ function handleBackgroundMessage(args) {
   }
 }
 
+function setupFuniDubChangeFix(player) {
+  //const vjsControlBar = document.querySelector("#brightcove-player > .vjs-control-bar");
+  const brightCove = document.querySelector("#brightcove-player");
+  const optionsWrapper = document.querySelector("#brightcove-player > .options-wrapper");
+  console.log("Options:", optionsWrapper);
+  const videoObserverOptions = {
+    attributeFilter: [ "src" ]
+  }
+  const videoObserver = new MutationObserver(function (mutationsList) {
+    console.log("Video mutated!", mutationsList);
+  });
+  const controlObserverOptions = {
+    childList: true,
+    subtree: true
+  }
+  const getInactiveAudioButtonsFuni = function () {
+    return document.querySelector("#funimation-audio-sub-menu > .funimation-li-option:not(.active-option)");
+  }
+  let inactiveAudioButtons = null;
+  const controlObserver = new MutationObserver(function (mutationsList) {
+    console.log("Brightcove mutated!", mutationsList);
+    mutationsList.forEach(mutation => {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeType === Node.ELEMENT_NODE && node.id === "options-wrapper") {
+            inactiveAudioButtons = getInactiveAudioButtonsFuni();
+            console.log("Controls active!!!", inactiveAudioButtons);
+          }
+        });
+      }
+    });
+  })
+  videoObserver.observe(player, videoObserverOptions);
+  controlObserver.observe(brightCove, controlObserverOptions);
+  //console.log("Control bar!", vjsControlBar);
+}
+
 /* Main function of content script. Checks for the appropriate <video>
  * element on the page. "player0" is the id given to the <video> tag within
  * the iframe of CrunchyRoll's vilos-player.
@@ -119,6 +170,31 @@ function handleBackgroundMessage(args) {
 function runContentScript() {
   const videotags = document.getElementsByTagName("video");
   player = videotags[0]
+  if (player === undefined) {
+    return;
+  }
+
+  if (service === Site.FUNIMATION) {
+    setupFuniDubChangeFix(player);
+  }
+
+  /*function getInactiveAudioButtonsFuni() {
+    return document.querySelector("#funimation-audio-sub-menu > .funimation-li-option:not(.active-option)");
+  }*/
+
+/*  function audioTriggerEventFuni(event) {
+    console.log("Triggered!");
+  }
+
+  function setTriggerAudioButtonsFuni() {
+    const inactiveButtons = getInactiveAudioButtonsFuni();
+    console.log("InactiveButtons", inactiveButtons);
+    inactiveButtons.forEach(element => {
+      element.addEventListener("click", audioTriggerEventFuni);
+    });
+  }
+
+  setTriggerAudioButtonsFuni();*/
 
   if (!player) {
     setTimeout(runContentScript, 500);
