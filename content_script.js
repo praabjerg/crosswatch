@@ -14,7 +14,25 @@ function checkService() {
 
 const service = checkService();
 
-const ignoreNext = {};
+const ignoreNext = {
+  [Actions.PLAY]: 0,
+  [Actions.PAUSE]: 0,
+  [Actions.READY]: 0,
+  [Actions.ENDED]: 0,
+  [Actions.TIMEUPDATE]: 0
+};
+
+function ignoreAction(action) {
+  if (ignoreNext[action] > 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+function setIgnore(action, num = 1) {
+  ignoreNext[action] += num;
+}
 
 let player = null;
 let lastFrameProgress = null;
@@ -41,12 +59,19 @@ function getStates() {
 /* Handles local actions and sends messages to let background.js propagate
  * actions to other users */
 const handleLocalAction = action => () => {
-  if (ignoreNext[action] === true) {
-    ignoreNext[action] = false;
+  //console.log("Incoming action", action);
+  if (ignoreAction(action) === true) {
+    ignoreNext[action]--;
+    //console.log("Action ignored!");
     return;
   }
+  //console.log("Going on!");
 
   const { state, currentProgress, timeJump } = getStates();
+  if (state === "paused" && action !== Actions.PAUSE) {
+    //console.log("Pause state ignored!");
+    return;
+  }
   const type = WebpageMessageTypes.LOCAL_UPDATE;
 
   log('Local Action', action, { type, state, currentProgress });
@@ -56,6 +81,7 @@ const handleLocalAction = action => () => {
       chrome.runtime.sendMessage({ type, state, currentProgress });
       break;
     case Actions.TIMEUPDATE:
+      //console.log("Timeupdate timeJump", timeJump);
       timeJump && chrome.runtime.sendMessage({ type, state, currentProgress });
       break;
   }
@@ -63,7 +89,8 @@ const handleLocalAction = action => () => {
 
 /* Used by handleRemoteUpdate to trigger video player actions from other users. */
 function triggerAction(action, progress) {
-  ignoreNext[action] = true;
+  setIgnore(action);
+  //ignoreNext[action] = true;
 
   switch (action) {
     case Actions.PAUSE:
@@ -74,10 +101,12 @@ function triggerAction(action, progress) {
       player.play();
       break;
     case Actions.TIMEUPDATE:
+      console.log("Set new timeupdate", progress);
       player.currentTime = progress;
       break;
     default:
-      ignoreNext[action] = false;
+      ignoreNext[action]--;
+      //ignoreNext[action] = false;
   }
 }
 
@@ -125,29 +154,56 @@ function setupFuniDubChangeFix(player) {
   //const vjsControlBar = document.querySelector("#brightcove-player > .vjs-control-bar");
   const brightCove = document.querySelector("#brightcove-player");
   const optionsWrapper = document.querySelector("#brightcove-player > .options-wrapper");
-  console.log("Options:", optionsWrapper);
+  let clickMoment = null;
+  let clickProgress = null;
   const videoObserverOptions = {
     attributeFilter: [ "src" ]
   }
   const videoObserver = new MutationObserver(function (mutationsList) {
-    console.log("Video mutated!", mutationsList);
+    if (clickMoment !== null) {
+      setIgnore(Actions.TIMEUPDATE);
+      setIgnore(Actions.PLAY);
+      let now = new Date();
+      let elapsed = Math.abs((now.getTime() - clickMoment.getTime())/1000);
+      console.log("switchMoment", now);
+      console.log("Elapsed", elapsed);
+      console.log("New currentTime", clickProgress + elapsed);
+      triggerAction(Actions.TIMEUPDATE, clickProgress + elapsed);
+    }
   });
   const controlObserverOptions = {
-    childList: true,
-    subtree: true
+    childList: true
   }
   const getInactiveAudioButtonsFuni = function () {
-    return document.querySelector("#funimation-audio-sub-menu > .funimation-li-option:not(.active-option)");
+    return document.querySelectorAll("#funimation-audio-sub-menu > .funimation-li-option:not(.active-option)");
   }
   let inactiveAudioButtons = null;
+  const setAudioClickEvent = function() {
+    inactiveAudioButtons.forEach(button => {
+      button.addEventListener("click", audioButtonListener);
+    });
+  }
+  const audioButtonListener = function() {
+    //console.log("Clicky");
+    clickMoment = new Date();
+    clickProgress = getState("currentTime");
+    console.log("clickMoment", clickMoment.getTime());
+    console.log("clickProgress", clickProgress);
+    setIgnore(Actions.PAUSE);
+    inactiveAudioButtons.forEach(button => {
+      button.removeEventListener("click", audioButtonListener);
+    });
+    inactiveAudioButtons = getInactiveAudioButtonsFuni();
+    setAudioClickEvent();
+  }
   const controlObserver = new MutationObserver(function (mutationsList) {
-    console.log("Brightcove mutated!", mutationsList);
+    //console.log("Brightcove mutated!", mutationsList);
     mutationsList.forEach(mutation => {
       if (mutation.type === "childList") {
         mutation.addedNodes.forEach(node => {
           if (node.nodeType === Node.ELEMENT_NODE && node.id === "options-wrapper") {
             inactiveAudioButtons = getInactiveAudioButtonsFuni();
-            console.log("Controls active!!!", inactiveAudioButtons);
+            setAudioClickEvent();
           }
         });
       }
@@ -177,24 +233,6 @@ function runContentScript() {
   if (service === Site.FUNIMATION) {
     setupFuniDubChangeFix(player);
   }
-
-  /*function getInactiveAudioButtonsFuni() {
-    return document.querySelector("#funimation-audio-sub-menu > .funimation-li-option:not(.active-option)");
-  }*/
-
-/*  function audioTriggerEventFuni(event) {
-    console.log("Triggered!");
-  }
-
-  function setTriggerAudioButtonsFuni() {
-    const inactiveButtons = getInactiveAudioButtonsFuni();
-    console.log("InactiveButtons", inactiveButtons);
-    inactiveButtons.forEach(element => {
-      element.addEventListener("click", audioTriggerEventFuni);
-    });
-  }
-
-  setTriggerAudioButtonsFuni();*/
 
   if (!player) {
     setTimeout(runContentScript, 500);
