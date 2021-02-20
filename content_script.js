@@ -1,5 +1,19 @@
 /* content_script.js manipulates the HTML5 video-player and captures actions related to it. */
 
+function checkService() {
+  if (window.location.href.includes("crunchyroll.com")) {
+    return Site.CRUNCHYROLL;
+  }
+  else if (window.location.href.includes("funimation.com")) {
+    return Site.FUNIMATION;
+  }
+  else if (window.location.href.includes("wakanim.tv")) {
+    return Site.WAKANIM;
+  }
+}
+
+const service = checkService();
+
 const ignoreNext = {};
 
 let player = null;
