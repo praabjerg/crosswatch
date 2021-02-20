@@ -101,7 +101,7 @@ function triggerAction(action, progress) {
       player.play();
       break;
     case Actions.TIMEUPDATE:
-      console.log("Set new timeupdate", progress);
+      console.log("Set new timeupdate", progress, typeof progress);
       player.currentTime = progress;
       break;
     default:
@@ -161,14 +161,16 @@ function setupFuniDubChangeFix(player) {
   }
   const videoObserver = new MutationObserver(function (mutationsList) {
     if (clickMoment !== null) {
-      setIgnore(Actions.TIMEUPDATE);
-      setIgnore(Actions.PLAY);
-      let now = new Date();
-      let elapsed = Math.abs((now.getTime() - clickMoment.getTime())/1000);
-      console.log("switchMoment", now);
-      console.log("Elapsed", elapsed);
-      console.log("New currentTime", clickProgress + elapsed);
-      triggerAction(Actions.TIMEUPDATE, clickProgress + elapsed);
+      setTimeout(function() {
+        setIgnore(Actions.TIMEUPDATE);
+        setIgnore(Actions.PLAY);
+        let now = new Date();
+        let elapsed = Math.abs((now.getTime() - clickMoment.getTime())/1000) + 1;
+        console.log("switchMoment", now);
+        console.log("Elapsed", elapsed);
+        console.log("New currentTime", clickProgress + elapsed);
+        triggerAction(Actions.TIMEUPDATE, clickProgress + elapsed);
+      }, 2000);
     }
   });
   const controlObserverOptions = {
