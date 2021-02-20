@@ -38,6 +38,13 @@ function getStates() {
   return { state, currentProgress, timeJump };
 }
 
+/* Add event listener from pagescript.js for accessing page script objects,
+ * such as the brightcove player api on Funimation */
+var scriptElement = document.createElement('script');
+scriptElement.src = chrome.extension.getURL('pagescript.js');
+(document.head || document.documentElement).appendChild(scriptElement);
+scriptElement.parentNode.removeChild(scriptElement);
+
 /* Handles local actions and sends messages to let background.js propagate
  * actions to other users */
 const handleLocalAction = action => () => {
@@ -66,18 +73,38 @@ function triggerAction(action, progress) {
   ignoreNext[action] = true;
 
   switch (action) {
-    case Actions.PAUSE:
+  case Actions.PAUSE:
+    if (service === Site.FUNIMATION) {
+      window.postMessage({
+        crosswatch_action: action,
+        currentTime: progress
+      }, "*");
+    } else {
       player.pause();
       player.currentTime = progress;
-      break;
-    case Actions.PLAY:
+    }
+    break;
+  case Actions.PLAY:
+    if (service === Site.FUNIMATION) {
+      window.postMessage({
+        crosswatch_action: action
+      }, "*");
+    } else {
       player.play();
-      break;
-    case Actions.TIMEUPDATE:
+    }
+    break;
+  case Actions.TIMEUPDATE:
+    if (service === Site.FUNIMATION) {
+      window.postMessage({
+        crosswatch_action: action,
+        currentTime: progress
+      }, "*");
+    } else {
       player.currentTime = progress;
-      break;
-    default:
-      ignoreNext[action] = false;
+    }
+    break;
+  default:
+    ignoreNext[action] = false;
   }
 }
 
