@@ -64,10 +64,10 @@ const handleLocalAction = action => () => {
     switch (action) {
     case Actions.PLAY:
     case Actions.PAUSE:
-      chrome.runtime.sendMessage({ type, state, offsetProgress });
+      chrome.runtime.sendMessage({ type, state, currentProgress: offsetProgress });
       break;
     case Actions.TIMEUPDATE:
-      timeJump && chrome.runtime.sendMessage({ type, state, offsetProgress });
+      timeJump && chrome.runtime.sendMessage({ type, state, currentProgress: offsetProgress });
       break;
     }
   }
