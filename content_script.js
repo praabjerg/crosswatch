@@ -71,6 +71,44 @@ const handleLocalAction = action => () => {
       break;
     }
   }
+  /* Otherwise, set playback to offset */
+  else {
+    /* Use triggerAction to */
+    /*triggerAction(action, testOffset);
+    chrome.runtime.sendMessage({ type, state, testOffset });*/
+  }
+}
+
+function play() {
+  if (service === Site.FUNIMATION) {
+    window.postMessage({
+      crosswatch_action: Actions.PLAY
+    }, "*");
+  } else {
+    player.play();
+  }
+}
+
+function pause(progress) {
+  if (service === Site.FUNIMATION) {
+    window.postMessage({
+      crosswatch_action: Actions.PAUSE
+    }, "*");
+  } else {
+    player.pause();
+    player.currentTime = progress;
+  }
+}
+
+function timeupdate(progress) {
+  if (service === Site.FUNIMATION) {
+    window.postMessage({
+      crosswatch_action: Actions.TIMEUPDATE,
+      currentTime: progress
+    }, "*");
+  } else {
+    player.currentTime = progress;
+  }
 }
 
 /* Used by handleRemoteUpdate to trigger video player actions from other users. */
@@ -79,34 +117,13 @@ function triggerAction(action, progress) {
 
   switch (action) {
   case Actions.PAUSE:
-    if (service === Site.FUNIMATION) {
-      window.postMessage({
-        crosswatch_action: action,
-        currentTime: progress
-      }, "*");
-    } else {
-      player.pause();
-      player.currentTime = progress;
-    }
+    pause(progress);
     break;
   case Actions.PLAY:
-    if (service === Site.FUNIMATION) {
-      window.postMessage({
-        crosswatch_action: action
-      }, "*");
-    } else {
-      player.play();
-    }
+    play();
     break;
   case Actions.TIMEUPDATE:
-    if (service === Site.FUNIMATION) {
-      window.postMessage({
-        crosswatch_action: action,
-        currentTime: progress
-      }, "*");
-    } else {
-      player.currentTime = progress;
-    }
+    timeupdate(progress);
     break;
   default:
     ignoreNext[action] = false;
