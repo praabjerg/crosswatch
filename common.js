@@ -10,6 +10,7 @@ const crunchyrollOrange = "#F78C25";
 const wRed = "#F72445";
 const chineseSilver = "#CCC";
 const defaultcolorOptions = [googleGreen, googleAquaBlue, crunchyrollOrange, wRed];
+const testOffset = 7;
 
 const Actions = {
   PLAY: 'play',

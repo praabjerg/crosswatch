@@ -54,17 +54,22 @@ const handleLocalAction = action => () => {
   }
 
   const { state, currentProgress, timeJump } = getStates();
+  const offsetProgress = currentProgress - testOffset;
   const type = WebpageMessageTypes.LOCAL_UPDATE;
 
   log('Local Action', action, { type, state, currentProgress });
-  switch (action) {
+  log('Adjusting for offset', offsetProgress);
+  /* Only send state and progress if offset brings it above 0 */
+  if (offsetProgress >= 0) {
+    switch (action) {
     case Actions.PLAY:
     case Actions.PAUSE:
-      chrome.runtime.sendMessage({ type, state, currentProgress });
+      chrome.runtime.sendMessage({ type, state, offsetProgress });
       break;
     case Actions.TIMEUPDATE:
-      timeJump && chrome.runtime.sendMessage({ type, state, currentProgress });
+      timeJump && chrome.runtime.sendMessage({ type, state, offsetProgress });
       break;
+    }
   }
 }
 
@@ -118,15 +123,17 @@ function sendRoomConnectionMessage(roomId) {
 
 /* Used by handleBackgroundMessage to handle REMOTE_UPDATE */
 function handleRemoteUpdate({ roomState, roomProgress }) {
+  const offsetProgress = roomProgress + testOffset;
   log('Handling Remote Update', { roomState, roomProgress });
+  log('Adjusting roomProgress with offset', offsetProgress);
   const { state, currentProgress } = getStates();
   if (state !== roomState) {
-    if (roomState === States.PAUSED) triggerAction(Actions.PAUSE, roomProgress);
-    if (roomState === States.PLAYING) triggerAction(Actions.PLAY, roomProgress);
+    if (roomState === States.PAUSED) triggerAction(Actions.PAUSE, offsetProgress);
+    if (roomState === States.PLAYING) triggerAction(Actions.PLAY, offsetProgress);
   }
 
-  if (Math.abs(roomProgress - currentProgress) > LIMIT_DELTA_TIME) {
-    triggerAction(Actions.TIMEUPDATE, roomProgress);
+  if (Math.abs(offsetProgress - currentProgress) > LIMIT_DELTA_TIME) {
+    triggerAction(Actions.TIMEUPDATE, offsetProgress);
   }
 }
 
