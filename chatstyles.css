@@ -19,11 +19,47 @@
     z-index: 5;
 }
 
+#chatFeed {
+    user-select: text;
+    position: absolute;
+    display: flex;
+    justify-content: end;
+    overflow-wrap: break-word;
+    overflow-y: auto;
+    flex-direction: column;
+    width: 100%;
+    height: 90%;
+    top: 0%;
+    background-color: #1a1a1a;
+    color: #9a9a9a;
+}
+
+#chatFeed > div {
+    margin-bottom: 4%;
+}
+
+#chatFeed > div > .chat-text {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    margin-left: 5%;
+}
+
+#chatFeed > div > .chat-nick {
+    font-weight: bold;
+    font-size: 1.8vh;
+}
+
+#chatFeed > div > .chat-message {
+    font-size: 2vh;
+}
+
 #chatInput {
     position: absolute;
+    box-sizing: border-box;
     width: 100%;
     height: 10%;
     bottom: 0px;
+    left: 0px;
     outline: none;
     resize: none;
     border: none;

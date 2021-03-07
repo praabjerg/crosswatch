@@ -15,7 +15,7 @@ function checkService() {
 const service = checkService();
 
 const ignoreNext = {};
-const nick = "Red Violet";
+const myNick = "Red Violet";
 
 let player = null;
 let lastFrameProgress = null;
@@ -27,13 +27,22 @@ chatImg.setAttribute("src", chrome.extension.getURL("imgs/chatIcon.png"));
 chatImg.setAttribute("alt", "Chat Icon. Click to toggle chat box.");
 chatIcon.appendChild(chatImg);
 
-const chatBoxHTML = '<div id="chatBox">' +
+const chatFeed = document.createElement("div");
+chatFeed.setAttribute("id", "chatFeed");
+const chatInput = document.createElement("textarea");
+chatInput.setAttribute("id", "chatInput");
+chatInput.setAttribute("maxlength", 120);
+const chatBox = document.createElement("div");
+chatBox.setAttribute("id", "chatBox");
+chatBox.appendChild(chatFeed);
+chatBox.appendChild(chatInput);
+/*const chatBoxHTML = '<div id="chatBox">' +
       '<div id="chatFeed"></div>' +
       '<textarea id="chatInput" maxlength=120></textarea>' +
       '</div>';
 const wrapper = document.createElement('div');
 wrapper.innerHTML = chatBoxHTML;
-const chatBox = wrapper.firstChild;
+const chatBox = wrapper.firstChild;*/
 //const chatBox = new DOMParser().parseFromString(chatBoxHTML, "text/xml");
 //const chatBox = document.createElement("div");
 //chatBox.setAttribute("id", "chatBox");
@@ -132,28 +141,35 @@ function triggerAction(action, progress) {
   }
 }
 
-function moveListener() {
+function chatMoveListener() {
   chatIcon.classList.remove("elementBGone");
   window.clearTimeout(iconTimeout);
   iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
 }
 
-function outListener() {
+function chatOutListener() {
   chatIcon.classList.add("elementBGone");
 }
 
-function keyListener(event) {
+function chatKeyListener(event) {
   event.stopPropagation();
   const chatInput = document.getElementById("chatInput");
   if (event.key === "Enter") {
     event.preventDefault();
-    chrome.runtime.sendMessage(
-      { nick: nick,
-        message: chatInput.value,
-        type: WebpageMessageTypes.LOCAL_CHAT }
-    );
-    chatInput.value = "";
+    if (chatInput.value !== "") {
+      chrome.runtime.sendMessage(
+        { nick: myNick,
+          message: chatInput.value,
+          type: WebpageMessageTypes.LOCAL_CHAT }
+      );
+      chatInput.value = "";
+    }
   }
+}
+
+/* Scroll chatFeed to bottom when changing to/from fullscreen. */
+function fullscreenListener(event) {
+  chatFeed.scrollTop = chatFeed.scrollHeight;
 }
 
 function setUpChatBox() {
@@ -180,19 +196,22 @@ function setUpChatBox() {
 
   iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
   playerRoot.appendChild(chatIcon);
-  playerRoot.addEventListener("mousemove", moveListener);
-  playerRoot.addEventListener("mouseout", outListener);
-  playerRoot.addEventListener("keydown", keyListener);
+  playerRoot.addEventListener("mousemove", chatMoveListener);
+  playerRoot.addEventListener("mouseout", chatOutListener);
+  playerRoot.addEventListener("keydown", chatKeyListener);
+  playerRoot.addEventListener("fullscreenchange", fullscreenListener);
 }
 
 function tearDownChatBox() {
   const playerRoot = document.getElementById("vilosRoot");
   const chatIcon = document.getElementById("chatBoxIcon");
+  const subCanvas = document.getElementById("velocity-canvas");
   chatIcon.remove();
   chatBox.remove();
-  playerRoot.removeEventListener("mousemove", moveListener);
-  playerRoot.removeEventListener("mouseout", outListener);
-  playerRoot.removeEventListener("keydown", keyListener);
+  playerRoot.removeEventListener("mousemove", chatMoveListener);
+  playerRoot.removeEventListener("mouseout", chatOutListener);
+  playerRoot.removeEventListener("keydown", chatKeyListener);
+  playerRoot.removeEventListener("fullscreenchange", fullscreenListener);
   player.classList.remove("videoCR");
   subCanvas.classList.remove("canvasCR");
 }
@@ -221,7 +240,24 @@ function handleRemoteUpdate({ roomState, roomProgress }) {
 
 /* Used by handleBackgroundMessage to handle REMOTE_CHAT */
 function handleRemoteChatMessage({ nick, message }) {
-  console.log(message);
+  let atBottom = chatFeed.scrollTop === (chatFeed.scrollHeight - chatFeed.offsetHeight);
+  // const chatFeed = document.getElementById("chatFeed");
+  const msgElement = document.createElement("div");
+  const nickElement = document.createElement("div");
+  nickElement.classList.add("chat-nick", "chat-text");
+  const textElement = document.createElement("div");
+  textElement.classList.add("chat-message", "chat-text");
+  const nickText = document.createTextNode(nick);
+  const msgText = document.createTextNode(message);
+  nickElement.appendChild(nickText);
+  textElement.appendChild(msgText);
+  msgElement.appendChild(nickElement);
+  msgElement.appendChild(textElement);
+  chatFeed.appendChild(msgElement);
+  if (atBottom || (myNick === nick)) {
+    chatFeed.scrollTop = chatFeed.scrollHeight;
+  }
+  console.log("Chat Message:", message);
 }
 
 function handleBackgroundMessage(args) {
