@@ -6,7 +6,7 @@
     height: 40px;
     opacity: 0.5;
     cursor: pointer;
-    z-index: 6;
+    z-index: 600000;
 }
 
 #chatBox {
@@ -16,7 +16,7 @@
     height: 85%;
     right: 0px;
     top: 0px;
-    z-index: 5;
+    z-index: 500000;
 }
 
 #chatFeed {
@@ -32,26 +32,59 @@
     top: 0%;
     background-color: #1a1a1a;
     color: #9a9a9a;
+    pad-bottom: 4px;
+}
+
+#chatBox > *::-webkit-scrollbar {
+    width: 10px;
+}
+
+#chatBox > *::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#chatBox > *::-webkit-scrollbar-thumb {
+    width: auto;
+    background-color: #6a6a6a;
 }
 
 #chatFeed > div {
-    margin-bottom: 4%;
+    margin-top: 3%;
+}
+
+:fullscreen #chatFeed > div {
+    margin-top: 2%;
+}
+
+#chatFeed > div:last-child {
+    margin-bottom: 3%;
+}
+
+:fullscreen #chatFeed > div:last-child {
+    margin-top: 2%;
 }
 
 #chatFeed > div > .chat-text {
     font-family: Arial, sans-serif;
     margin: 0;
-    margin-left: 5%;
+    margin-left: 4%;
+    font-size: 12px;
+    line-height: 1.1em;
+}
+
+:fullscreen #chatFeed > div > .chat-text {
+    font-size: 25px;
+    margin-left: 2%;
 }
 
 #chatFeed > div > .chat-nick {
     font-weight: bold;
-    font-size: 1.8vh;
+    font-size: 11px;
 }
 
-#chatFeed > div > .chat-message {
-    font-size: 2vh;
-}
+/*#chatFeed > div > .chat-message {
+    margin-left: 4%;
+}*/
 
 #chatInput {
     position: absolute;
@@ -65,21 +98,37 @@
     border: none;
     background-color: #3a3a3a;
     color: #9a9a9a;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+:fullscreen #chatInput {
+    font-size: 28px;
+}
+
+/* Simple fix for Funimation video width */
+@media (min-width: 992px) {
+    .col-md-10 {
+        width: 100% !important;
+    }
 }
 
 .elementBGone {
-    visibility: hidden;
+    visibility: hidden !important;
 }
 
-.videoCR {
+/* Use specificity to override !important properties in Funi CSS */
+#funimation-player > div > .videoFuni, .videoCR, #jwplayer-container > .jw-wrapper > .jw-media > .videoWaka {
     position: absolute;
     width: 85% !important;
     height: 85% !important;
     left: 0px;
     top: 0px;
+    bottom: unset;
+    right: unset;
 }
 
-.canvasCR {
+#funimation-player > div > .canvasFuni, .canvasCR {
     position: absolute;
     width: 85% !important;
     height: 85% !important;
