@@ -4,12 +4,6 @@ const DEBUG = true;
 const DISPLAY_DEBUG_TIME = false;
 
 const LIMIT_DELTA_TIME = 3; // In Seconds
-const googleGreen = "#009688";
-const googleAquaBlue = "#00BBD3";
-const crunchyrollOrange = "#F78C25";
-const wRed = "#F72445";
-const chineseSilver = "#CCC";
-const defaultcolorOptions = [googleGreen, googleAquaBlue, crunchyrollOrange, wRed];
 
 const Actions = {
   PLAY: 'play',
@@ -68,18 +62,10 @@ function getDefaultRoomId() {
   });
 }
 
-function getExtensionColor() {
+function getDefaultNick() {
   return new Promise(callback => {
-    chrome.storage.sync.get({ extensionColor: wRed }, function (data) {
-      callback(data.extensionColor);
-    });
-  });
-}
-
-function getColorMenu() {
-  return new Promise(callback => {
-    chrome.storage.sync.get({ colorOptions: defaultcolorOptions }, function (data) {
-      callback(data.colorOptions);
+    chrome.storage.sync.get({ defaultNick: "" }, function (data) {
+      callback(data.defaultNick);
     });
   });
 }

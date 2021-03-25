@@ -7,13 +7,6 @@ const disconnectButton = document.getElementById('disconnect');
 const idInput = document.getElementById('idInput');
 let optionButtons = document.getElementsByClassName('actionButton');
 
-getExtensionColor().then(color => {
-  for (button of optionButtons) {
-    log("Color of " + button.id + " is now " + color);
-    button.style.backgroundColor = color;
-  }
-});
-
 function update() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tab = tabs[0];

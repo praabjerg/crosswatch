@@ -10,11 +10,6 @@ loadStyles();
  * It may be safe to remove it. */
 const regex = /http.*:\/\/www\.crunchyroll.*\/[^\/]+\/episode.*/;
 
-/* RT Icon color management */
-chrome.tabs.onActivated.addListener(({ tabId }) => {
-  getExtensionColor().then(color => setIconColor(tabId, color));
-});
-
 /* On installation, set rule for when to make the extension popup available (popup.html, popup.js)
  * In this case, we have to be on www.crunchyroll.*, and the page has to contain a vilos-player
  * in an iframe.*/
@@ -36,11 +31,6 @@ chrome.runtime.onInstalled.addListener(function () {
       actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
-});
-
-/* RT Icon color management */
-chrome.tabs.onUpdated.addListener(async function (tabId, changeInfo, tab) {
-  getExtensionColor().then(color => setIconColor(tabId, color));
 });
 
 /* Disconnect from server when closing tab */
@@ -202,63 +192,6 @@ function connectWebsocket(tabId, videoProgress, videoState, roomId) {
       sendChatToWebpage(tabId, nick, message);
     });
 });
-}
-
-/* Sets "RT" icon color */
-function setIconColor(tabId, color) {
-  const canvas = document.createElement('canvas');
-  canvas.height = canvas.width = 128;
-
-  const ctx = canvas.getContext("2d");
-  ctx.font = "bold 75px roboto";
-  ctx.textAlign = "center";
-  ctx.fillStyle = color;
-  roundRect(ctx, 0, 0, canvas.width, canvas.height, 20, true, false);
-  ctx.fillStyle = 'white';
-  ctx.fillText("XW", canvas.width / 2, canvas.height / 2 + 32);
-
-  const imageData = ctx.getImageData(0, 0, 128, 128);
-  window.imageData = imageData;
-
-  window.data = imageData;
-  chrome.pageAction.setIcon({
-    imageData,
-    tabId
-  });
-}
-
-function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
-  if (typeof stroke === 'undefined') {
-    stroke = true;
-  }
-  if (typeof radius === 'undefined') {
-    radius = 5;
-  }
-  if (typeof radius === 'number') {
-    radius = { tl: radius, tr: radius, br: radius, bl: radius };
-  } else {
-    const defaultRadius = { tl: 0, tr: 0, br: 0, bl: 0 };
-    for (var side in defaultRadius) {
-      radius[side] = radius[side] || defaultRadius[side];
-    }
-  }
-  ctx.beginPath();
-  ctx.moveTo(x + radius.tl, y);
-  ctx.lineTo(x + width - radius.tr, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
-  ctx.lineTo(x + width, y + height - radius.br);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
-  ctx.lineTo(x + radius.bl, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
-  ctx.lineTo(x, y + radius.tl);
-  ctx.quadraticCurveTo(x, y, x + radius.tl, y);
-  ctx.closePath();
-  if (fill) {
-    ctx.fill();
-  }
-  if (stroke) {
-    ctx.stroke();
-  }
 }
 
 function loadStyles() {
