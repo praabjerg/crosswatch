@@ -20,6 +20,7 @@ const myNick = "Red Violet";
 let player = null;
 let lastFrameProgress = null;
 
+/* Create and associate elements for crosswatch sidebar */
 const chatIcon = document.createElement("div");
 chatIcon.setAttribute("id", "chatBoxIcon");
 const chatImg = document.createElement("img");
@@ -34,12 +35,46 @@ chatInput.setAttribute("id", "chatInput");
 chatInput.setAttribute("maxlength", 120);
 const chatBox = document.createElement("div");
 chatBox.setAttribute("id", "chatBox");
+chatBox.classList.add("sidebarSection");
 chatBox.appendChild(chatFeed);
 chatBox.appendChild(chatInput);
+const toggleSilenceMenu = document.createElement("div");
+toggleSilenceMenu.setAttribute("id", "toggleSilenceMenu");
+const toggleSilenceText = document.createElement("div");
+const participantsNode = document.createTextNode("> Participants <");
+const chatFeedNode = document.createTextNode("> Chat Feed <");
+toggleSilenceText.appendChild(participantsNode);
+toggleSilenceMenu.appendChild(toggleSilenceText);
+const silenceMenu = document.createElement("div");
+silenceMenu.classList.add("elementBGone");
+silenceMenu.classList.add("sidebarSection");
+silenceMenu.setAttribute("id", "silenceMenu");
+const injectedSidebar = document.createElement("div");
+injectedSidebar.setAttribute("id", "crossWatchSidebar");
+
+injectedSidebar.appendChild(toggleSilenceMenu);
+injectedSidebar.appendChild(chatBox);
+injectedSidebar.appendChild(silenceMenu);
+
+function toggleSidebar() {
+  if (silenceMenu.classList.contains("elementBGone")) {
+    chatBox.classList.add("elementBGone");
+    silenceMenu.classList.remove("elementBGone");
+    participantsNode.remove();
+    toggleSilenceText.appendChild(chatFeedNode);
+  } else {
+    silenceMenu.classList.add("elementBGone");
+    chatBox.classList.remove("elementBGone");
+    chatFeedNode.remove();
+    toggleSilenceText.appendChild(participantsNode);
+  }
+}
+
+toggleSilenceMenu.onclick = toggleSidebar;
 
 let iconTimeout = null;
 function iconTimeoutFunc() {
-  chatIcon.classList.add("elementBGone");
+  chatIcon.classList.add("elementBHidden");
 }
 
 function getState(stateName) {
@@ -131,14 +166,14 @@ function triggerAction(action, progress) {
   }
 }
 
-function chatMoveListener() {
-  chatIcon.classList.remove("elementBGone");
+function chatMoveListener(){
+  chatIcon.classList.remove("elementBHidden");
   window.clearTimeout(iconTimeout);
   iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
 }
 
 function chatOutListener() {
-  chatIcon.classList.add("elementBGone");
+  chatIcon.classList.add("elementBHidden");
 }
 
 function chatKeyListener(event) {
@@ -209,20 +244,22 @@ function setUpChatBox() {
         subCanvas.classList.remove(canvasClass);
       } else if (service === Site.FUNIMATION) {
         /* On Funimation, we remove gradients and dock text to make the UI less obtrusive. */
-        document.querySelector("#brightcove-player > .vjs-dock-text").classList.remove("elementBGone");
-        document.querySelector("#funimation-gradient").classList.remove('elementBGone');
+        document.querySelector("#brightcove-player > .vjs-dock-text").classList.remove("elementBHidden");
+        document.querySelector("#funimation-gradient").classList.remove('elementBHidden');
       }
       showChatBox = false;
-      chatBox.remove();
+      injectedSidebar.remove();
+      // chatBox.remove();
     } else {
       player.classList.add(videoClass);
-      playerRoot.appendChild(chatBox);
+      playerRoot.appendChild(injectedSidebar);
+      // playerRoot.appendChild(chatBox);
       if (service === Site.CRUNCHYROLL) {
         subCanvas.classList.add(canvasClass);
       }
       if (service === Site.FUNIMATION) {
-        document.querySelector("#brightcove-player > .vjs-dock-text").classList.add("elementBGone");
-        document.querySelector("#funimation-gradient").classList.add('elementBGone');
+        document.querySelector("#brightcove-player > .vjs-dock-text").classList.add("elementBHidden");
+        document.querySelector("#funimation-gradient").classList.add('elementBHidden');
       }
       showChatBox = true;
     }
@@ -248,7 +285,8 @@ function tearDownChatBox() {
   } else if (service === Site.WAKANIM) {
   }
   chatIcon.remove();
-  chatBox.remove();
+  injectedSidebar.remove();
+  // chatBox.remove();
   playerRoot.removeEventListener("mousemove", chatMoveListener);
   playerRoot.removeEventListener("mouseout", chatOutListener);
   chatInput.removeEventListener("keydown", chatKeyListener);
