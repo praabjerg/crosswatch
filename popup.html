@@ -2,16 +2,17 @@
 <html>
 
 <head>
-  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="popup.css">
 </head>
 
 <body>
   <div class="container">
     <h1 id="title">CrossWatch</h1>
-    <p id="description" class="firstPage">Insert room id to create or join a room.</p>
-    <p id="description" class="secondPage">Share the room id below to invite others to watch synchronized with you.</p>
+    <h2>Room ID</h2>
     <input id="idInput" />
-    <div class="secondPage buttonContainer">
+    <p class="description firstPage">Insert Room ID to create or join a room. If empty, a new Room ID will be generated.</p>
+    <p class="description secondPage">Share the Room ID to invite others to watch synchronized with you.</p>
+    <div class="displaySection secondPage buttonContainer">
       <button id="copyId" class="actionButton">
         <div class="center">Copy ID</div>
       </button>
@@ -19,7 +20,10 @@
         <div class="center">Disconnect</div>
       </button>
     </div>
-    <div class="center firstPage">
+    <div class="displaySection firstPage">
+      <h2>Nick</h2>
+      <input id="nickInput" />
+      <p class="description">The name you will go by in the chat box.</p>
       <button id="createRoom" class="actionButton">
         <div class="center">Join Room</div>
       </button>

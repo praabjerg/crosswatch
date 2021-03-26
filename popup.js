@@ -5,6 +5,7 @@ const createRoomButton = document.getElementById('createRoom');
 const copyIdButton = document.getElementById('copyId');
 const disconnectButton = document.getElementById('disconnect');
 const idInput = document.getElementById('idInput');
+const nickInput = document.getElementById('nickInput');
 let optionButtons = document.getElementsByClassName('actionButton');
 
 function update() {
@@ -20,15 +21,19 @@ function update() {
       idInput.focus();
       idInput.select();
 
-      [...document.getElementsByClassName('firstPage')].forEach(el => el.style.display = 'none');
-      [...document.getElementsByClassName('secondPage')].forEach(el => el.style = {});
+      [...document.getElementsByClassName('firstPage')].forEach(el => el.classList.add('noDisplay'));
+      [...document.getElementsByClassName('secondPage')].forEach(el => el.classList.remove('noDisplay'));
     } else {
       getDefaultRoomId().then(roomId => {
         log('Setting roomId field');
         idInput.value = roomId;
       });
-      [...document.getElementsByClassName('firstPage')].forEach(el => el.style = {});
-      [...document.getElementsByClassName('secondPage')].forEach(el => el.style.display = 'none');
+      getDefaultNick().then(nick => {
+        log('Setting nick field');
+        nickInput.value = nick;
+      });
+      [...document.getElementsByClassName('firstPage')].forEach(el => el.classList.remove('noDisplay'));
+      [...document.getElementsByClassName('secondPage')].forEach(el => el.classList.add('noDisplay'));
     }
   });
 }

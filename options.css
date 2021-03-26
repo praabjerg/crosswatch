@@ -110,34 +110,10 @@ button:active {
   filter: brightness(85%);
 }
 
-/*input {
-  margin-bottom: 10px;
-}*/
-
 input:focus, textarea:focus, select:focus {
   outline: none;
 }
 
-.container {
-  width: 290px;
-  height: 205px;
-  background-color: white;
-  padding: 8px 24px;
-  display: flex;
-  flex-direction: column;
-}
-
-.buttonContainer {
-  display: flex;
-  justify-content: space-between;
-}
-
-.center {
-  display: flex;
-  justify-content: center;
-  margin: auto;
-}
-
-.firstPage .secondPage {
+.noDisplay {
   display: none;
 }
