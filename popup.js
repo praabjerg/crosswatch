@@ -6,6 +6,10 @@ const copyIdButton = document.getElementById('copyId');
 const disconnectButton = document.getElementById('disconnect');
 const idInput = document.getElementById('idInput');
 const nickInput = document.getElementById('nickInput');
+const releaseNotesLink = document.getElementById('releaseNotesLink');
+const releaseNotes = document.getElementById('releaseNotes');
+const popupMain = document.getElementById('popupMain');
+const releaseOkButton = document.getElementById('releaseOkButton');
 let optionButtons = document.getElementsByClassName('actionButton');
 
 function update() {
@@ -31,6 +35,15 @@ function update() {
       getDefaultNick().then(nick => {
         log('Setting nick field');
         nickInput.value = nick;
+      });
+      getHasShownReleaseNotes().then(hasShown => {
+        if (hasShown) {
+          releaseNotes.classList.add('noDisplay');
+          popupMain.classList.remove('noDisplay');
+        } else {
+          popupMain.classList.add('noDisplay');
+          releaseNotes.classList.remove('noDisplay');
+        }
       });
       [...document.getElementsByClassName('firstPage')].forEach(el => el.classList.remove('noDisplay'));
       [...document.getElementsByClassName('secondPage')].forEach(el => el.classList.add('noDisplay'));
@@ -65,7 +78,14 @@ disconnectButton.onclick = function () {
   })
 }
 
-idInput.onclick = function () {
+releaseNotesLink.onclick = function () {
+  setHasShownReleaseNotes(false);
+  update();
+}
+
+releaseOkButton.onclick = function () {
+  setHasShownReleaseNotes(true);
+  update();
 }
 
 background.window.updatePopup = update;

@@ -13,7 +13,7 @@ const regex = /http.*:\/\/www\.crunchyroll.*\/[^\/]+\/episode.*/;
 /* On installation, set rule for when to make the extension popup available (popup.html, popup.js)
  * In this case, we have to be on www.crunchyroll.*, and the page has to contain a vilos-player
  * in an iframe.*/
-chrome.runtime.onInstalled.addListener(function () {
+chrome.runtime.onInstalled.addListener(function (details) {
   chrome.declarativeContent.onPageChanged.removeRules(undefined, function () {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [
@@ -31,6 +31,10 @@ chrome.runtime.onInstalled.addListener(function () {
       actions: [new chrome.declarativeContent.ShowPageAction()]
     }]);
   });
+
+  if (details.reason == "install" || details.reason == "update") {
+    setHasShownReleaseNotes(false);
+  }
 });
 
 /* Disconnect from server when closing tab */

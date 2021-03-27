@@ -33,6 +33,29 @@ body {
     margin-top: 5px;
 }
 
+#releaseNotesLink {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    color: #0089ff;
+    cursor: pointer;
+    font-size: 10px;
+}
+
+#releaseNotes > ul {
+    padding-left: 20px;
+    text-align: left;
+    list-style-type: square;
+}
+
+#releaseNotes > ul > li {
+    margin-bottom: 5px;
+}
+
+#releaseNotes > ul > li:first-child > .version {
+    font-weight: bold;
+}
+
 h2 {
   font-size: 18px;
   display: flex;

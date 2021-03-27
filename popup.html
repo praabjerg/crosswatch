@@ -6,7 +6,19 @@
 </head>
 
 <body>
-  <div class="container">
+  <div id="releaseNotes" class="container noDisplay">
+    <h1 id="title">CrossWatch</h1>
+    <h2>Release Notes</h2>
+    <ul>
+      <li><span class="version">2.0</span> - Implemented chat box: Choose nick when joining room. Set default nick in options. When connected to room, click speech bubble icon in upper right corner of video to toggle chat box. Switch to/from participant list at top of chat box. Click participant in list to mute/unmute them in your chat feed. <strong>Please note that this release requires a server update for the chatbox to work.</strong></li>
+      <li><span class="version">1.1</span> - Fixed some issues with Funimation player consistently freezing up when seeking backward. It might still freeze up in some situations, but hopefully less often.</li>
+    </ul>
+    <button id="releaseOkButton">
+      <div class="center">OK</div>
+    </button>
+  </div>
+  <div id="popupMain" class="container">
+    <div id="releaseNotesLink">Release Notes</div>
     <h1 id="title">CrossWatch</h1>
     <h2>Room ID</h2>
     <input id="idInput" />

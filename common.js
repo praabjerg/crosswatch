@@ -69,3 +69,15 @@ function getDefaultNick() {
     });
   });
 }
+
+function setHasShownReleaseNotes(hasShown) {
+  chrome.storage.sync.set({ hasShownReleaseNotes: hasShown });
+}
+
+function getHasShownReleaseNotes() {
+  return new Promise(callback => {
+    chrome.storage.sync.get({ hasShownReleaseNotes: false }, function (data) {
+      callback(data.hasShownReleaseNotes);
+    });
+  });
+}
