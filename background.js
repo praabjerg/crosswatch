@@ -18,11 +18,10 @@ chrome.runtime.onInstalled.addListener(function (details) {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.*:\/\/www\.crunchyroll.*\/[^\/]+\/.*" },
-          css: ["iframe#vilos-player"]
+          pageUrl: { urlMatches: "http.?:\/\/[^\.]*\.crunchyroll\." },
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.*:\/\/www\.wakanim.*\/[^\/]+\/.*" },
+          pageUrl: { urlMatches: "http.?:\/\/www\.wakanim.*\/[^\/]+\/.*" },
         }),
         new chrome.declarativeContent.PageStateMatcher({
           pageUrl: { urlMatches: "http.*:\/\/www\.funimation.*\/[^\/]+\/.*" },

@@ -37,6 +37,7 @@
     "activeTab",
     "declarativeContent",
     "*://www.crunchyroll.com/*",
+    "*://beta.crunchyroll.com/*",
     "*://static.crunchyroll.com/*",
     "*://www.wakanim.tv/*",
     "*://www.funimation.com/*"

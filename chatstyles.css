@@ -156,16 +156,28 @@
 #funimation-player > div > .videoFuni, .videoCR, #jwplayer-container > .jw-wrapper > .jw-media > .videoWaka {
     position: absolute;
     width: 85% !important;
-    height: unset !important;
     left: 0px;
     top: 0px;
     bottom: unset;
     right: unset;
 }
 
-#funimation-player > div > .canvasFuni, .canvasCR {
+#funimation-player > div > .videoFuni,#jwplayer-container > .jw-wrapper > .jw-media > .videoWaka {
+    height: unset !important;
+}
+
+.crunchyBetaWidth :not(:fullscreen) #vilosRoot {
+    max-width: 177.777777777777778vh;
+}
+
+.videoCR {
+    height: 85% !important;
+}
+
+.canvasCR {
     position: absolute;
     width: 85% !important;
+    height: 85% !important;
     left: 0px;
     top: 0px;
 }

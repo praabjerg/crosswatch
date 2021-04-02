@@ -234,6 +234,8 @@ function setUpChatBox() {
   if (service === Site.CRUNCHYROLL) {
     subCanvas = document.getElementById("velocity-canvas");
     canvasClass = "canvasCR";
+    const vilos = document.getElementById("vilos");
+    vilos.classList.add("crunchyBetaWidth");
   }
   let showChatBox = false;
 
@@ -275,25 +277,25 @@ function setUpChatBox() {
 }
 
 function tearDownChatBox() {
-  let playerRoot;
+  const playerRoot = getPlayerRoot();
+  const videoClass = getVideoClass();
   let subCanvas;
   const chatIcon = document.getElementById("chatBoxIcon");
   if (service === Site.CRUNCHYROLL) {
-    playerRoot = document.getElementById("vilosRoot");
     subCanvas = document.getElementById("velocity-canvas");
-  } else if (service === Site.FUNIMATION) {
-  } else if (service === Site.WAKANIM) {
+    subCanvas.classList.remove("canvasCR");
+    playerRoot.classList.remove("crunchyBetaWidth");
+    const vilos = document.getElementById("vilos");
+    vilos.classList.remove("crunchyBetaWidth");
   }
   chatIcon.remove();
   injectedSidebar.remove();
-  // chatBox.remove();
   playerRoot.removeEventListener("mousemove", chatMoveListener);
   playerRoot.removeEventListener("mouseout", chatOutListener);
   chatInput.removeEventListener("keydown", chatKeyListener);
   chatInput.removeEventListener("keyup", chatKeyPressBlocker);
   playerRoot.removeEventListener("fullscreenchange", fullscreenListener);
-  player.classList.remove("videoCR");
-  subCanvas.classList.remove("canvasCR");
+  player.classList.remove(videoClass);
 }
 
 function sendRoomConnectionMessage(roomId) {
