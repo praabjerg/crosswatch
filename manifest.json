@@ -14,9 +14,9 @@
     {
       "all_frames": true,
       "matches": [
-        "*://static.crunchyroll.com/*",
-        "*://www.wakanim.tv/*",
-        "*://www.funimation.com/*"
+        "*://*.crunchyroll.com/*",
+        "*://*.wakanim.tv/*",
+        "*://*.funimation.com/*"
       ],
       "js": [
         "common.js",

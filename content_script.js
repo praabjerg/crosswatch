@@ -323,7 +323,6 @@ function handleRemoteUpdate({ roomState, roomProgress }) {
 /* Used by handleBackgroundMessage to handle REMOTE_CHAT */
 function handleRemoteChatMessage({ nick, message }) {
   let atBottom = chatFeed.scrollTop === (chatFeed.scrollHeight - chatFeed.offsetHeight);
-  // const chatFeed = document.getElementById("chatFeed");
   const msgElement = document.createElement("div");
   const nickElement = document.createElement("div");
   nickElement.classList.add("chat-nick", "chat-text");
@@ -349,9 +348,10 @@ function handleBackgroundMessage(args) {
   const roomId = args.roomId;
   switch (type) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
-      setUpChatBox();
+      console.log("Received Room Connection!");
+      //setUpChatBox();
       /* Handle connection to create a new room. */
-      sendRoomConnectionMessage(roomId);
+      //sendRoomConnectionMessage(roomId);
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
@@ -368,27 +368,33 @@ function handleBackgroundMessage(args) {
 }
 
 /* Main function of content script. Finds the (hopefully) correct <video>
- * element on the page.
- * An local action listener (handleLocalAction) is set up to listen for
+ * element on the page, and connects to the background script.
+ * A local action listener (handleLocalAction) is set up to listen for
  * actions performed on the video by the local user, and will use the
  * chrome.runtime.onMessage listener in background.js to propagate
  * LOCAL_UPDATE actions to other users.
  * The runtime.onMessage listener handleBackgroundMessage is used to handle
  * messages from backround.js */
 function runContentScript() {
+  console.log("GoScript!");
   const videotags = document.getElementsByTagName("video");
   player = videotags[0]
 
-  if (!player) {
+  /*if (!player) {
     setTimeout(runContentScript, 500);
     return;
+  }*/
+
+  /* If we find a player, connect up properly, otherwise we only do the simple
+   * background script connection to setup tab information. */
+  if (player) {
+    for (action in Actions) {
+      player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
+    }
+
+    chrome.runtime.onMessage.addListener(handleBackgroundMessage);
   }
 
-  for (action in Actions) {
-    player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
-  }
-
-  chrome.runtime.onMessage.addListener(handleBackgroundMessage);
   /* Send message to runtime.onMessage listener in backend.js to connect to room. */
   chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
 }

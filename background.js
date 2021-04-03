@@ -6,10 +6,6 @@ const tabsInfo = {};
 
 loadStyles();
 
-/* Searching through, I don't actually think this regex is used for anything.
- * It may be safe to remove it. */
-const regex = /http.*:\/\/www\.crunchyroll.*\/[^\/]+\/episode.*/;
-
 /* On installation, set rule for when to make the extension popup available (popup.html, popup.js)
  * In this case, we have to be on www.crunchyroll.*, and the page has to contain a vilos-player
  * in an iframe.*/
@@ -18,13 +14,13 @@ chrome.runtime.onInstalled.addListener(function (details) {
     chrome.declarativeContent.onPageChanged.addRules([{
       conditions: [
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.?:\/\/[^\.]*\.crunchyroll\." },
+          pageUrl: { urlMatches: "http.?://[^\.]*\.crunchyroll\.com(/.*)?$" },
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.?:\/\/www\.wakanim.*\/[^\/]+\/.*" },
+          pageUrl: { urlMatches: "http.?://[^\.]*\.wakanim\.tv(/.*)?$" },
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.*:\/\/www\.funimation.*\/[^\/]+\/.*" },
+          pageUrl: { urlMatches: "http.?://[^\.]\.funimation.com(/.*)?$" },
         })
       ],
       actions: [new chrome.declarativeContent.ShowPageAction()]
@@ -96,12 +92,6 @@ chrome.runtime.onMessage.addListener(
         log('Received webpage message', { type, state: msg.state, currentProgress: msg.currentProgress, url, sender });
         handleWebpageConnection(sender.tab)
         break;
-      /* Handles connection to join a room.
-       * Originates from createRoomButton.onclick in popup.js */
-      case WebpageMessageTypes.ROOM_CONNECTION:
-        log('Received webpage message', { type, state: msg.state, currentProgress: msg.currentProgress, url, sender });
-        connectWebsocket(tabId, msg.currentProgress, msg.state, msg.roomId);
-        break;
       /* Submits local video status/progress updates.
        * Originates from handleLocalAction in content_script.js */
       case (WebpageMessageTypes.LOCAL_UPDATE):
@@ -162,14 +152,15 @@ function sendConnectionRequestToWebpage(tab, roomId) {
    * getStates in content_script.js, and is activated on new room connections from
    * createRoomButton.onclick in popup.js. */
   chrome.tabs.sendMessage(tab.id, { type: BackgroundMessageTypes.ROOM_CONNECTION, roomId: roomId });
+  connectWebsocket(tabId, roomId);
 }
 
 /* Connect websocket to server. */
-function connectWebsocket(tabId, videoProgress, videoState, roomId) {
-  log('Connecting websocket', { tabId, videoProgress, videoState, roomId });
+function connectWebsocket(tabId, roomId) {
+  log('Connecting websocket', { tabId, roomId });
   const tabInfo = tabsInfo[tabId];
 
-  let query = `videoProgress=${Math.round(videoProgress)}&videoState=${videoState}${(roomId ? `&room=${roomId}` : '')}`;
+  let query = `${(roomId ? `&room=${roomId}` : '')}`;
 
   getBackendUrl().then(function(url) {
     tabInfo.socket = io(url, { query });
