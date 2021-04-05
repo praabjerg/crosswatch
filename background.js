@@ -20,7 +20,7 @@ chrome.runtime.onInstalled.addListener(function (details) {
           pageUrl: { urlMatches: "http.?://[^\.]*\.wakanim\.tv(/.*)?$" },
         }),
         new chrome.declarativeContent.PageStateMatcher({
-          pageUrl: { urlMatches: "http.?://[^\.]\.funimation.com(/.*)?$" },
+          pageUrl: { urlMatches: "http.?://[^\.]*\.funimation.com(/.*)?$" },
         })
       ],
       actions: [new chrome.declarativeContent.ShowPageAction()]

@@ -15,6 +15,7 @@ function checkService() {
 const service = checkService();
 
 const ignoreNext = {};
+let ignoreTimed = false;
 const myNick = "Red Violet";
 
 let player = null;
@@ -56,6 +57,10 @@ injectedSidebar.appendChild(toggleSilenceMenu);
 injectedSidebar.appendChild(chatBox);
 injectedSidebar.appendChild(silenceMenu);
 
+const syncMessage = document.createElement("div");
+syncMessage.setAttribute("id", "syncMessage");
+const syncText = document.createTextNode("Syncing to other watchers - please don't touch controls");
+
 function toggleSidebar() {
   if (silenceMenu.classList.contains("elementBGone")) {
     chatBox.classList.add("elementBGone");
@@ -96,6 +101,16 @@ function getStates() {
   return { state, currentProgress, timeJump };
 }
 
+function getVideoSelectorString() {
+  if (service === Site.CRUNCHYROLL) {
+    return "#player0";
+  } else  if (service === Site.FUNIMATION) {
+    return "#brightcove-player_html5_api";
+  } else if (service === Site.WAKANIM) {
+    return "#jwplayer-container > .jw-wrapper > .jw-media > .jw-video";
+  }
+}
+
 /* Add event listener from pagescript.js for accessing page script objects,
  * such as the brightcove player api on Funimation */
 var scriptElement = document.createElement('script');
@@ -103,11 +118,24 @@ scriptElement.src = chrome.extension.getURL('pagescript.js');
 (document.head || document.documentElement).appendChild(scriptElement);
 scriptElement.parentNode.removeChild(scriptElement);
 
+function startSyncPeriod(seconds) {
+  ignoreTimed = true;
+  syncMessage.classList.remove("elementBGone");
+  window.setTimeout(function () {
+    ignoreTimed = false;
+    syncMessage.classList.add("elementBGone");
+  }, seconds * 1000);
+}
+
 /* Handles local actions and sends messages to let background.js propagate
  * actions to other users */
 const handleLocalAction = action => () => {
   if (ignoreNext[action] === true) {
     ignoreNext[action] = false;
+    return;
+  }
+
+  if (ignoreTimed === true) {
     return;
   }
 
@@ -377,16 +405,19 @@ function handleBackgroundMessage(args) {
  * messages from backround.js */
 function runContentScript() {
   console.log("GoScript!");
-  const videotags = document.getElementsByTagName("video");
-  player = videotags[0]
+  player = document.querySelector(getVideoSelectorString());
+  // const videotags = document.getElementsByTagName("video");
+  // player = videotags[0]
+
+  /* Send message to runtime.onMessage listener in background.js to connect it to tab. */
+  chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
 
   /*if (!player) {
     setTimeout(runContentScript, 500);
     return;
   }*/
 
-  /* If we find a player, connect up properly, otherwise we only do the simple
-   * background script connection to setup tab information. */
+  /* If we find a player, we setup event and message handlers for sync communication. */
   if (player) {
     for (action in Actions) {
       player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
@@ -394,9 +425,10 @@ function runContentScript() {
 
     chrome.runtime.onMessage.addListener(handleBackgroundMessage);
   }
-
-  /* Send message to runtime.onMessage listener in backend.js to connect to room. */
-  chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
+  /* If we find no player, repeat every half second until we do. */
+  else {
+    setTimeout(runContentScript, 500);
+  }
 }
 
 runContentScript();
