@@ -38,6 +38,7 @@ const WebpageMessageTypes = {
   ROOM_CONNECTION: 'room_connection',
   CONNECTION: 'connection',
   LOCAL_CHAT: 'local_chat',
+  ROOM_ID: 'room_id',
 }
 
 function log() {

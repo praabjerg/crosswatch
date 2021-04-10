@@ -14,6 +14,30 @@ function checkService() {
 
 const service = checkService();
 
+function isNotIframe(elt) {
+  if (elt && elt.tagName === "IFRAME") {
+    return false;
+  } else {
+    return true;
+  }
+}
+/* Some sites encapsulate the player in an iframe (Crunchyroll, Funimation).
+ * This causes the script to run twice (in- and outside the iframe) when we
+ * allow it to activate for the entire domain. This function is used to
+ * prevent the script from doing anything outside the iframe. */
+function shouldRun() {
+  if (service === Site.CRUNCHYROLL) {
+    const vidIframe = document.getElementById("vilos-player");
+    return isNotIframe(vidIframe);
+  } else  if (service === Site.FUNIMATION) {
+    const vidIframe = document.getElementById("player");
+    return isNotIframe(vidIframe);
+  } else if (service === Site.WAKANIM) {
+    /* Wakanim does not use an iframe for the player */
+    return true;
+  }
+}
+
 const ignoreNext = {};
 let ignoreTimed = false;
 const myNick = "Red Violet";
@@ -111,6 +135,16 @@ function getVideoSelectorString() {
   }
 }
 
+function getVideoTag() {
+  if (service === Site.CRUNCHYROLL) {
+    return document.getElementById("player0");
+  } else  if (service === Site.FUNIMATION) {
+    return document.getElementById("brightcove-player_html5_api");
+  } else if (service === Site.WAKANIM) {
+    return document.querySelector("#jwplayer-container > .jw-wrapper > .jw-media > .jw-video");
+  }
+}
+
 /* Add event listener from pagescript.js for accessing page script objects,
  * such as the brightcove player api on Funimation */
 var scriptElement = document.createElement('script');
@@ -205,7 +239,6 @@ function chatOutListener() {
 }
 
 function chatKeyListener(event) {
-  console.log("Chat key!", event);
   event.stopPropagation();
   const chatInput = document.getElementById("chatInput");
   if (event.key === "Enter") {
@@ -222,7 +255,6 @@ function chatKeyListener(event) {
 }
 
 function chatKeyPressBlocker() {
-  console.log("Keyup event!", event);
   event.stopPropagation();
 }
 
@@ -252,7 +284,7 @@ function getVideoClass() {
   }
 }
 
-function setUpChatBox() {
+function setupChatBox() {
   let subCanvas;
   let canvasClass;
 
@@ -366,7 +398,16 @@ function handleRemoteChatMessage({ nick, message }) {
   if (atBottom || (myNick === nick)) {
     chatFeed.scrollTop = chatFeed.scrollHeight;
   }
-  console.log("Chat Message:", message);
+}
+
+function setupContent(syncPeriod) {
+  setupChatBox();
+  /* Start 10 second sync period (during which no events are sent to other
+   * participants), and setup message and event handlers */
+  startSyncPeriod(syncPeriod);
+  for (action in Actions) {
+    player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
+  }
 }
 
 function handleBackgroundMessage(args) {
@@ -376,8 +417,10 @@ function handleBackgroundMessage(args) {
   const roomId = args.roomId;
   switch (type) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
-      console.log("Received Room Connection!");
-      //setUpChatBox();
+      /* If we connect while on the video page, we set up
+       * chatbox and content connections here. */
+      setupContent(5);
+      /* setupChatBox(); */
       /* Handle connection to create a new room. */
       //sendRoomConnectionMessage(roomId);
       break;
@@ -404,29 +447,25 @@ function handleBackgroundMessage(args) {
  * The runtime.onMessage listener handleBackgroundMessage is used to handle
  * messages from backround.js */
 function runContentScript() {
-  console.log("GoScript!");
-  player = document.querySelector(getVideoSelectorString());
-  // const videotags = document.getElementsByTagName("video");
-  // player = videotags[0]
+  player = getVideoTag();
 
   /* Send message to runtime.onMessage listener in background.js to connect it to tab. */
   chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
 
-  /*if (!player) {
-    setTimeout(runContentScript, 500);
-    return;
-  }*/
-
-  /* If we find a player, we setup event and message handlers for sync communication. */
+  /* If we find a player, we check for connection, and if connected, we setup event
+   * and message handlers for sync communication. */
   if (player) {
-    for (action in Actions) {
-      player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
-    }
-
-    chrome.runtime.onMessage.addListener(handleBackgroundMessage);
+    chrome.runtime.sendMessage({ type: WebpageMessageTypes.ROOM_ID }, {}, function(response) {
+      chrome.runtime.onMessage.addListener(handleBackgroundMessage);
+      const connected = response.roomId != null;
+      if (connected) {
+        setupContent(10);
+      }
+    });
   }
-  /* If we find no player, repeat every half second until we do. */
-  else {
+  /* If we find no player, repeat every half second until we do, or until shouldRun()
+   * says not to run. */
+  else if (shouldRun()) {
     setTimeout(runContentScript, 500);
   }
 }

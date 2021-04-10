@@ -76,14 +76,19 @@ function disconnectWebsocket(tabId) {
   tryUpdatePopup();
 }
 
+function getRoomId(tabId) {
+  return tabsInfo[tabId] && tabsInfo[tabId].roomId;
+}
+
 chrome.runtime.onMessage.addListener(
-  function (msg, sender) {
+  function (msg, sender, sendResponse) {
     const type = msg.type;
     const tabId = sender.tab.id;
     const tabInfo = tabsInfo[tabId];
     const url = sender.tab.url;
     /* if update, { state, currentProgress, type, roomId }
-     * if chat,   { nick, message, type, roomId }*/
+     * if chat,   { nick, message, type, roomId }
+     * if connected { tabId } */
 
     switch (type) {
       /* Handles new connection from content_script in tab.
@@ -103,6 +108,9 @@ chrome.runtime.onMessage.addListener(
       case (WebpageMessageTypes.LOCAL_CHAT):
         log('Received webpage message', { type, nick: msg.nick, message: msg.message, url, sender });
         tabInfo.socket && tabInfo.socket.emit('chat', msg.nick, msg.message);
+        break;
+      case (WebpageMessageTypes.ROOM_ID):
+        sendResponse({ roomId: getRoomId(tabId) });
         break;
       default:
         throw "Invalid WebpageMessageType " + type;
@@ -201,6 +209,6 @@ function loadStyles() {
 window.updatePopup = null;
 window.createRoom = sendConnectionRequestToWebpage;
 window.disconnectRoom = disconnectWebsocket;
-window.getRoomId = (tabId) => tabsInfo[tabId] && tabsInfo[tabId].roomId;
+window.getRoomId = getRoomId;
 
 log("Initialized");
