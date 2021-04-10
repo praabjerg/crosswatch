@@ -170,14 +170,18 @@
     max-width: 177.777777777777778vh;
 }
 
+/* Trick: The viewport is the iframe, so we can use
+ * viewport width to maintain 16:9 aspect ratio for
+ * both video and canvas when resizing. */
 .videoCR {
-    height: 85% !important;
+    height: 85vw !important;
+    height: 47.8125vw !important;
 }
 
 .canvasCR {
     position: absolute;
-    width: 85% !important;
-    height: 85% !important;
+    width: 85vw !important;
+    height: 47.8125vw !important;
     left: 0px;
     top: 0px;
 }
