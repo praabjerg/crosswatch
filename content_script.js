@@ -39,6 +39,7 @@ function shouldRun() {
 }
 
 const ignoreNext = {};
+let activeLocalEventListeners = new Map();
 let ignoreTimed = false;
 const myNick = "Red Violet";
 
@@ -406,8 +407,20 @@ function setupContent(syncPeriod) {
    * participants), and setup message and event handlers */
   startSyncPeriod(syncPeriod);
   for (action in Actions) {
-    player.addEventListener(Actions[action], handleLocalAction(Actions[action]));
+    console.log("Setup handler for action", action);
+    const actionListener = handleLocalAction(Actions[action]);
+    activeLocalEventListeners.set(Actions[action], actionListener);
+    player.addEventListener(Actions[action], actionListener);
   }
+}
+
+function tearDownContent() {
+  tearDownChatBox();
+  activeLocalEventListeners.forEach(function(actionListener, action) {
+    console.log("Remove handler for action", action);
+    player.removeEventListener(action, actionListener);
+  });
+  activeLocalEventListeners = new Map();
 }
 
 function handleBackgroundMessage(args) {
@@ -420,9 +433,6 @@ function handleBackgroundMessage(args) {
       /* If we connect while on the video page, we set up
        * chatbox and content connections here. */
       setupContent(5);
-      /* setupChatBox(); */
-      /* Handle connection to create a new room. */
-      //sendRoomConnectionMessage(roomId);
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
@@ -431,7 +441,7 @@ function handleBackgroundMessage(args) {
       handleRemoteChatMessage(args);
       break;
     case BackgroundMessageTypes.ROOM_DISCONNECT:
-      tearDownChatBox();
+      tearDownContent();
       break;
     default:
       throw "Invalid BackgroundMessageType: " + type;
