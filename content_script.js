@@ -84,7 +84,10 @@ injectedSidebar.appendChild(silenceMenu);
 
 const syncMessage = document.createElement("div");
 syncMessage.setAttribute("id", "syncMessage");
-const syncText = document.createTextNode("Syncing to other watchers - please don't touch controls");
+const syncText = document.createTextNode("Sync period (don't use player controls while this message is visible)");
+syncMessage.appendChild(syncText);
+
+
 
 function toggleSidebar() {
   if (silenceMenu.classList.contains("elementBGone")) {
@@ -299,6 +302,7 @@ function setupChatBox() {
     vilos.classList.add("crunchyBetaWidth");
   }
   let showChatBox = false;
+  playerRoot.appendChild(syncMessage);
 
   chatIcon.onclick = function() {
     if (showChatBox) {
@@ -351,6 +355,7 @@ function tearDownChatBox() {
   }
   chatIcon.remove();
   injectedSidebar.remove();
+  syncMessage.remove();
   playerRoot.removeEventListener("mousemove", chatMoveListener);
   playerRoot.removeEventListener("mouseout", chatOutListener);
   chatInput.removeEventListener("keydown", chatKeyListener);

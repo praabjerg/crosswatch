@@ -137,6 +137,21 @@
     font-size: 28px;
 }
 
+#syncMessage {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #f72445;
+    color: white;
+    opacity: 0.5;
+    padding: 5px;
+    border-radius: 10px;
+    z-index: 500100;
+}
+
 /* Simple fix for Funimation video width */
 @media (min-width: 992px) {
     .col-md-10 {
