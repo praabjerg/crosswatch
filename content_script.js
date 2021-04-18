@@ -84,10 +84,16 @@ injectedSidebar.appendChild(silenceMenu);
 
 const syncMessage = document.createElement("div");
 syncMessage.setAttribute("id", "syncMessage");
-const syncText = document.createTextNode("Sync period (don't use player controls while this message is visible)");
-syncMessage.appendChild(syncText);
+const syncPreText = document.createTextNode("Sync in ");
+const syncCount = document.createTextNode("");
+const syncPostText = document.createTextNode(" seconds");
+syncMessage.appendChild(syncPreText);
+syncMessage.appendChild(syncCount);
+syncMessage.appendChild(syncPostText);
 
-
+function setSyncMsgTime(seconds) {
+  syncCount.nodeValue = seconds;
+}
 
 function toggleSidebar() {
   if (silenceMenu.classList.contains("elementBGone")) {
@@ -156,13 +162,27 @@ scriptElement.src = chrome.extension.getURL('pagescript.js');
 (document.head || document.documentElement).appendChild(scriptElement);
 scriptElement.parentNode.removeChild(scriptElement);
 
+let syncMsgUpdateId;
+let syncMsgCounter;
 function startSyncPeriod(seconds) {
+  if (syncMsgUpdateId) {
+    window.clearInterval(syncMsgUpdateId);
+  }
   ignoreTimed = true;
+  syncMsgCounter = seconds;
+  setSyncMsgTime(syncMsgCounter);
   syncMessage.classList.remove("elementBGone");
-  window.setTimeout(function () {
-    ignoreTimed = false;
-    syncMessage.classList.add("elementBGone");
-  }, seconds * 1000);
+  syncMsgUpdateId = window.setInterval(function () {
+    if (syncMsgCounter <= 1) {
+      ignoreTimed = false;
+      chrome.runtime.sendMessage({ type: WebpageMessageTypes.RESYNC });
+      syncMessage.classList.add("elementBGone");
+      window.clearInterval(syncMsgUpdateId);
+    } else {
+      syncMsgCounter--;
+      setSyncMsgTime(syncMsgCounter);
+    }
+  }, 1000);
 }
 
 /* Handles local actions and sends messages to let background.js propagate
@@ -464,9 +484,6 @@ function handleBackgroundMessage(args) {
 function runContentScript() {
   player = getVideoTag();
 
-  /* Send message to runtime.onMessage listener in background.js to connect it to tab. */
-  chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
-
   /* If we find a player, we check for connection, and if connected, we setup event
    * and message handlers for sync communication. */
   if (player) {
@@ -484,5 +501,8 @@ function runContentScript() {
     setTimeout(runContentScript, 500);
   }
 }
+
+/* Send message to runtime.onMessage listener in background.js to connect it to tab. */
+chrome.runtime.sendMessage({ type: WebpageMessageTypes.CONNECTION });
 
 runContentScript();

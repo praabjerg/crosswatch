@@ -39,6 +39,7 @@ const WebpageMessageTypes = {
   CONNECTION: 'connection',
   LOCAL_CHAT: 'local_chat',
   ROOM_ID: 'room_id',
+  RESYNC: 'resync',
 }
 
 function log() {

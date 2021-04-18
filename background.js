@@ -112,6 +112,9 @@ chrome.runtime.onMessage.addListener(
       case (WebpageMessageTypes.ROOM_ID):
         sendResponse({ roomId: getRoomId(tabId) });
         break;
+      case (WebpageMessageTypes.RESYNC):
+        tabInfo.socket && tabInfo.socket.emit('resync');
+        break;
       default:
         throw "Invalid WebpageMessageType " + type;
     }
@@ -174,12 +177,10 @@ function connectWebsocket(tabId, roomId) {
     tabInfo.socket = io(url, { query });
 
     /* Listen for roomId and initial State and Progress from server. */
-    tabInfo.socket.on('join', (receivedRoomId, roomState, roomProgress) => {
+    tabInfo.socket.on('join', (receivedRoomId) => {
       tabInfo.roomId = receivedRoomId;
-      log('Sucessfully joined a room', { roomId: tabInfo.roomId, roomState, roomProgress });
+      log('Sucessfully joined a room', { roomId: tabInfo.roomId });
       tryUpdatePopup();
-
-      sendUpdateToWebpage(tabId, roomState, roomProgress);
     });
 
     /* Listen for running updates of State and Progress from server. */
@@ -193,7 +194,7 @@ function connectWebsocket(tabId, roomId) {
       log('Received chat message from ', id, { nick, message });
       sendChatToWebpage(tabId, nick, message);
     });
-});
+  });
 }
 
 function loadStyles() {
