@@ -113,6 +113,7 @@ toggleSilenceMenu.onclick = toggleSidebar;
 
 let iconTimeout = null;
 function iconTimeoutFunc() {
+  console.log("Icon timeout");
   chatIcon.classList.add("elementBHidden");
 }
 
@@ -259,6 +260,7 @@ function chatMoveListener(){
 }
 
 function chatOutListener() {
+  console.log("Icon out");
   chatIcon.classList.add("elementBHidden");
 }
 
@@ -309,6 +311,7 @@ function getVideoClass() {
 }
 
 function setupChatBox() {
+  console.log('Setting up chatbox');
   let subCanvas;
   let canvasClass;
 
@@ -325,6 +328,7 @@ function setupChatBox() {
   playerRoot.appendChild(syncMessage);
 
   chatIcon.onclick = function() {
+    console.log('Clicked!');
     if (showChatBox) {
       player.classList.remove(videoClass);
       if (service === Site.CRUNCHYROLL) {
@@ -352,10 +356,13 @@ function setupChatBox() {
     }
   }
 
+  console.log('Chat icon', chatIcon);
+  console.log('onclick', chatIcon.onclick);
+
   iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
   playerRoot.appendChild(chatIcon);
   playerRoot.addEventListener("mousemove", chatMoveListener);
-  playerRoot.addEventListener("mouseout", chatOutListener);
+  playerRoot.addEventListener("mouseleave", chatOutListener);
   chatInput.addEventListener("keydown", chatKeyListener);
   chatInput.addEventListener("keyup", chatKeyPressBlocker);
   playerRoot.addEventListener("fullscreenchange", fullscreenListener);
@@ -377,7 +384,7 @@ function tearDownChatBox() {
   injectedSidebar.remove();
   syncMessage.remove();
   playerRoot.removeEventListener("mousemove", chatMoveListener);
-  playerRoot.removeEventListener("mouseout", chatOutListener);
+  playerRoot.removeEventListener("mouseleave", chatOutListener);
   chatInput.removeEventListener("keydown", chatKeyListener);
   chatInput.removeEventListener("keyup", chatKeyPressBlocker);
   playerRoot.removeEventListener("fullscreenchange", fullscreenListener);
@@ -428,7 +435,7 @@ function handleRemoteChatMessage({ nick, message }) {
 
 function setupContent(syncPeriod) {
   setupChatBox();
-  /* Start 10 second sync period (during which no events are sent to other
+  /* Start sync period (during which no events are sent to other
    * participants), and setup message and event handlers */
   startSyncPeriod(syncPeriod);
   for (action in Actions) {
@@ -457,7 +464,8 @@ function handleBackgroundMessage(args) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
       /* If we connect while on the video page, we set up
        * chatbox and content connections here. */
-      setupContent(5);
+      setupContent(3);
+      console.log('Just set up content');
       break;
     case BackgroundMessageTypes.REMOTE_UPDATE:
       handleRemoteUpdate(args);
@@ -467,6 +475,9 @@ function handleBackgroundMessage(args) {
       break;
     case BackgroundMessageTypes.ROOM_DISCONNECT:
       tearDownContent();
+      break;
+    case BackgroundMessageTypes.IS_FIRST:
+      startSyncPeriod(0);
       break;
     default:
       throw "Invalid BackgroundMessageType: " + type;
@@ -495,8 +506,8 @@ function runContentScript() {
       }
     });
   }
-  /* If we find no player, repeat every half second until we do, or until shouldRun()
-   * says not to run. */
+  /* If we find no player, repeat every half second until we do, if shouldRun()
+   * says to run. */
   else if (shouldRun()) {
     setTimeout(runContentScript, 500);
   }

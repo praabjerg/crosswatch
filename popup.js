@@ -10,6 +10,10 @@ const releaseNotesLink = document.getElementById('releaseNotesLink');
 const releaseNotes = document.getElementById('releaseNotes');
 const popupMain = document.getElementById('popupMain');
 const releaseOkButton = document.getElementById('releaseOkButton');
+const connectionAlert = document.getElementById('connectionErrorAlert');
+const nickAlert = document.getElementById('nickInUseAlert');
+const optionsLink = document.getElementById('xwOptionsLink');
+const backendGithubLink = document.getElementById('xwBackendLink');
 let optionButtons = document.getElementsByClassName('actionButton');
 
 function update() {
@@ -19,6 +23,18 @@ function update() {
     const connected = roomId != null;
 
     log('Updating Popup...', { roomId, connected });
+
+    //popupAlertText.nodeValue = background.window.getFailConnectMsg();
+    if (background.window.getFailType() === 'connection') {
+      connectionAlert.classList.remove('noDisplay');
+      nickAlert.classList.add('noDisplay');
+    } else if (background.window.getFailType() === 'nick') {
+      connectionAlert.classList.add('noDisplay');
+      nickAlert.classList.remove('noDisplay');
+    } else {
+      connectionAlert.classList.add('noDisplay');
+      nickAlert.classList.add('noDisplay');
+    }
 
     if (connected) {
       idInput.value = roomId;
@@ -54,6 +70,14 @@ function update() {
 window.addEventListener('beforeunload', () => {
   background.window.updatePopup = null;
 });
+
+/* Options and github links */
+optionsLink.onclick = function () {
+  chrome.runtime.openOptionsPage();
+}
+backendGithubLink.onclick = function () {
+  chrome.tabs.create({active: true, url: 'https://github.com/praabjerg/crosswatch_backend'});
+}
 
 /* Room creation is initiated here. createRoom is assigned the sendConnectionRequestToWebpage
  * function from background.js */

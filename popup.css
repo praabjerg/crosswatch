@@ -148,3 +148,13 @@ input:focus, textarea:focus, select:focus {
 .noDisplay {
   display: none;
 }
+
+#connectionErrorAlert > ul {
+    margin-top: 5px;
+}
+
+.popupAlert {
+  color: red;
+  text-align: left;
+  margin-top: 20px;
+}
