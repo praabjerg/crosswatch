@@ -256,7 +256,7 @@ function triggerAction(action, progress) {
 function chatMoveListener(){
   chatIcon.classList.remove("elementBHidden");
   window.clearTimeout(iconTimeout);
-  iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
+  iconTimeout = window.setTimeout(iconTimeoutFunc, 2000);
 }
 
 function chatOutListener() {
@@ -359,10 +359,10 @@ function setupChatBox() {
   console.log('Chat icon', chatIcon);
   console.log('onclick', chatIcon.onclick);
 
-  iconTimeout = window.setTimeout(iconTimeoutFunc, 3000);
+  iconTimeout = window.setTimeout(iconTimeoutFunc, 2000);
   playerRoot.appendChild(chatIcon);
   playerRoot.addEventListener("mousemove", chatMoveListener);
-  playerRoot.addEventListener("mouseleave", chatOutListener);
+  // playerRoot.addEventListener("mouseleave", chatOutListener);
   chatInput.addEventListener("keydown", chatKeyListener);
   chatInput.addEventListener("keyup", chatKeyPressBlocker);
   playerRoot.addEventListener("fullscreenchange", fullscreenListener);
@@ -384,7 +384,7 @@ function tearDownChatBox() {
   injectedSidebar.remove();
   syncMessage.remove();
   playerRoot.removeEventListener("mousemove", chatMoveListener);
-  playerRoot.removeEventListener("mouseleave", chatOutListener);
+  // playerRoot.removeEventListener("mouseleave", chatOutListener);
   chatInput.removeEventListener("keydown", chatKeyListener);
   chatInput.removeEventListener("keyup", chatKeyPressBlocker);
   playerRoot.removeEventListener("fullscreenchange", fullscreenListener);
