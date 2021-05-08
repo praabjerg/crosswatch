@@ -41,7 +41,7 @@ function shouldRun() {
 const ignoreNext = {};
 let activeLocalEventListeners = new Map();
 let ignoreTimed = false;
-const myNick = "Red Violet";
+let myNick = "";
 
 let player = null;
 let lastFrameProgress = null;
@@ -428,6 +428,7 @@ function handleRemoteChatMessage({ nick, message }) {
   msgElement.appendChild(nickElement);
   msgElement.appendChild(textElement);
   chatFeed.appendChild(msgElement);
+  /* If you send a chat message yourself, scroll to bottom */
   if (atBottom || (myNick === nick)) {
     chatFeed.scrollTop = chatFeed.scrollHeight;
   }
@@ -464,6 +465,7 @@ function handleBackgroundMessage(args) {
     case BackgroundMessageTypes.ROOM_CONNECTION:
       /* If we connect while on the video page, we set up
        * chatbox and content connections here. */
+      myNick = args.nick;
       setupContent(3);
       console.log('Just set up content');
       break;

@@ -16,6 +16,14 @@ const optionsLink = document.getElementById('xwOptionsLink');
 const backendGithubLink = document.getElementById('xwBackendLink');
 let optionButtons = document.getElementsByClassName('actionButton');
 
+idInput.oninput = function () {
+  background.window.setBrowserSessionRoomId(idInput.value);
+}
+
+nickInput.oninput = function () {
+  background.window.setBrowserSessionNick(nickInput.value);
+}
+
 function update() {
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
     const tab = tabs[0];
@@ -44,14 +52,26 @@ function update() {
       [...document.getElementsByClassName('firstPage')].forEach(el => el.classList.add('noDisplay'));
       [...document.getElementsByClassName('secondPage')].forEach(el => el.classList.remove('noDisplay'));
     } else {
-      getDefaultRoomId().then(roomId => {
-        log('Setting roomId field');
-        idInput.value = roomId;
-      });
-      getDefaultNick().then(nick => {
-        log('Setting nick field');
-        nickInput.value = nick;
-      });
+      let browserSessionRoomId = background.window.getBrowserSessionRoomId();
+      if (!browserSessionRoomId) {
+        getDefaultRoomId().then(roomId => {
+          log('Setting roomId field to default');
+          idInput.value = roomId;
+        });
+      } else {
+        log('Setting roomId field to browser session');
+        idInput.value = browserSessionRoomId;
+      }
+      let browserSessionNick = background.window.getBrowserSessionNick();
+      if (!browserSessionNick) {
+        getDefaultNick().then(nick => {
+          log('Setting nick field to default');
+          nickInput.value = nick;
+        });
+      } else {
+        log('Setting nick field to browser session');
+        nickInput.value = browserSessionNick;
+      }
       getHasShownReleaseNotes().then(hasShown => {
         if (hasShown) {
           releaseNotes.classList.add('noDisplay');
@@ -84,7 +104,7 @@ backendGithubLink.onclick = function () {
 createRoomButton.onclick = async function () {
   log('Clicking CreateRoomButton');
   chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-    background.window.createRoom(tabs[0], idInput.value);
+    background.window.createRoom(tabs[0], idInput.value, nickInput.value);
   });
 };
 

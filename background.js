@@ -4,6 +4,8 @@
 /* Identifies the Crunchyroll tab and keeps useful information under its tabId (socket, roomId) */
 const tabsInfo = {};
 let failConnect = "";
+let browserSessionRoomId = "";
+let browserSessionNick = "";
 
 loadStyles();
 
@@ -172,7 +174,7 @@ function sendConnectionRequestToWebpage(tab, roomId, nick) {
 
 /* Connect websocket to server. */
 function connectWebsocket(tabId, roomId, nick) {
-  log('Connecting websocket', { tabId, roomId });
+  log('Connecting websocket', { tabId, roomId, nick });
   const tabInfo = tabsInfo[tabId];
 
   let query = `nick=${nick}${(roomId ? `&room=${roomId}` : '')}`;
@@ -183,7 +185,7 @@ function connectWebsocket(tabId, roomId, nick) {
     /* Listen for roomId and participants on join. */
     tabInfo.socket.on('join', (receivedRoomId, participants) => {
       tabInfo.roomId = receivedRoomId;
-      chrome.tabs.sendMessage(tabId, { type: BackgroundMessageTypes.ROOM_CONNECTION, roomId: roomId });
+      chrome.tabs.sendMessage(tabId, { type: BackgroundMessageTypes.ROOM_CONNECTION, roomId: roomId, nick: nick });
       if (participants.length === 0) {
         chrome.tabs.sendMessage(tabId, { type: BackgroundMessage.IS_FIRST });
       }
@@ -226,10 +228,30 @@ function loadStyles() {
   head.appendChild(link);
 }
 
+function setBrowserSessionRoomId(roomId) {
+  browserSessionRoomId = roomId;
+}
+
+function getBrowserSessionRoomId(roomId) {
+  return browserSessionRoomId;
+}
+
+function setBrowserSessionNick(nick) {
+  browserSessionNick = nick;
+}
+
+function getBrowserSessionNick(nick) {
+  return browserSessionNick;
+}
+
 window.updatePopup = null;
 window.createRoom = sendConnectionRequestToWebpage;
 window.disconnectRoom = disconnectWebsocket;
 window.getRoomId = getRoomId;
 window.getFailType = getFailType;
+window.getBrowserSessionRoomId = getBrowserSessionRoomId;
+window.setBrowserSessionRoomId = setBrowserSessionRoomId;
+window.getBrowserSessionNick = getBrowserSessionNick;
+window.setBrowserSessionNick = setBrowserSessionNick;
 
 log("Initialized");
